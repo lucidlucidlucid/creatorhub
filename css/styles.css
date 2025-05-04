@@ -767,6 +767,16 @@ footer {
     color: var(--accent-color);
 }
 
+.zip-preview {
+    font-size: 60px;
+    color: #4a86e8; /* Blue color for ZIP files */
+}
+
+.other-preview {
+    font-size: 60px;
+    color: var(--light-text);
+}
+
 .asset-info {
     padding: 15px;
 }

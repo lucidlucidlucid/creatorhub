@@ -11,12 +11,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Assets data
     let assets = [];
     
-    // Hardcoded repository URL - replace with the correct repository path
-    const apiUrl = 'https://api.github.com/repos/lucidlucidlucid/creatorhub/contents/assetsstuff';
+    // Hardcoded repository URL - using the correct path for the main branch
+    const apiUrl = 'https://api.github.com/repos/lucidlucidlucid/creatorhub/contents/assetsstuff?ref=main';
     
     // File type definitions
     const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'];
     const modelExtensions = ['glb', 'gltf', 'obj', 'fbx', 'stl'];
+    const zipExtensions = ['zip', 'rar', '7z'];
     
     // Show loading indicator immediately
     loadingIndicator.style.display = 'flex';
@@ -34,18 +35,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 return response.json();
             })
             .then(data => {
-                // Filter for image and model files only
+                // Filter for image, model and zip files
                 assets = data.filter(file => {
                     const extension = file.name.split('.').pop().toLowerCase();
-                    return [...imageExtensions, ...modelExtensions].includes(extension);
+                    return [...imageExtensions, ...modelExtensions, ...zipExtensions].includes(extension);
                 }).map(file => {
                     const extension = file.name.split('.').pop().toLowerCase();
+                    let type = 'other';
+                    if (imageExtensions.includes(extension)) {
+                        type = 'image';
+                    } else if (modelExtensions.includes(extension)) {
+                        type = 'model';
+                    } else if (zipExtensions.includes(extension)) {
+                        type = 'zip';
+                    }
+                    
                     return {
                         name: file.name,
                         path: file.download_url,
                         date: new Date().toISOString(), // GitHub API doesn't provide date in contents API
                         size: file.size || 0,
-                        type: imageExtensions.includes(extension) ? 'image' : 'model'
+                        type: type
                     };
                 });
                 
@@ -66,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     { name: 'banana.png', path: '#', date: '2023-09-05T09:15:00Z', size: 512000, type: 'image' },
                     { name: 'tree.glb', path: '#', date: '2023-09-01T16:45:00Z', size: 3072000, type: 'model' },
                     { name: 'gorilla_avatar.glb', path: '#', date: '2023-08-25T11:20:00Z', size: 4096000, type: 'model' },
+                    { name: 'assets.zip', path: '#', date: '2023-08-15T12:30:00Z', size: 8192000, type: 'zip' },
                     { name: 'map.jpg', path: '#', date: '2023-08-20T08:10:00Z', size: 1536000, type: 'image' },
                     { name: 'cosmetic.glb', path: '#', date: '2023-08-10T15:50:00Z', size: 2560000, type: 'model' },
                 ];
@@ -111,9 +122,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 preview = `<div class="asset-preview image-preview">
                     <img src="${asset.path}" alt="${asset.name}" onerror="this.src='../images/image-placeholder.png'">
                 </div>`;
-            } else {
+            } else if (asset.type === 'model') {
                 preview = `<div class="asset-preview model-preview">
                     <i class="fas fa-cube"></i>
+                </div>`;
+            } else if (asset.type === 'zip') {
+                preview = `<div class="asset-preview zip-preview">
+                    <i class="fas fa-file-archive"></i>
+                </div>`;
+            } else {
+                preview = `<div class="asset-preview other-preview">
+                    <i class="fas fa-file"></i>
                 </div>`;
             }
             
