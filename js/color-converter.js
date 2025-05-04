@@ -1,6 +1,12 @@
 // Color Converter JavaScript
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Force apply Gogga font to all inputs
+    document.querySelectorAll('input, select').forEach(el => {
+        el.style.fontFamily = "'Gogga', sans-serif";
+        el.style.textTransform = "uppercase";
+    });
+
     const redInput = document.getElementById('gtag-r');
     const greenInput = document.getElementById('gtag-g');
     const blueInput = document.getElementById('gtag-b');

@@ -1,6 +1,12 @@
 // Assets Browser JavaScript
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Force apply Gogga font to all inputs
+    document.querySelectorAll('input, select').forEach(el => {
+        el.style.fontFamily = "'Gogga', sans-serif";
+        el.style.textTransform = "uppercase";
+    });
+
     // DOM elements
     const loadingIndicator = document.getElementById('loading-indicator');
     const assetsGrid = document.getElementById('assets-grid');
