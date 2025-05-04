@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sound Browser | Lucid's GTAG Hub</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo-container">
+                <a href="/" class="logo">
+                    Lucid's GTAG Hub
+                </a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/color-converter/">Color Converter</a></li>
+                <li><a href="/sound-browser/" class="active">Sound Browser</a></li>
+                <li><a href="/coming-soon/">Coming Soon</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="page-header">
+            <h1>GTAG Sound Browser</h1>
+            <p>Preview and download sound files from the official GTAG collection</p>
+        </section>
+
+        <section class="sound-browser">
+            <div class="loading-indicator" id="loading-indicator">
+                <div class="spinner"></div>
+                <p>Loading sound files...</p>
+            </div>
+
+            <div class="sound-list-container">
+                <div class="filters">
+                    <input type="text" id="search-filter" placeholder="Search sounds...">
+                    <select id="sort-filter">
+                        <option value="name-asc">Name (A-Z)</option>
+                        <option value="name-desc">Name (Z-A)</option>
+                        <option value="date-new">Newest First</option>
+                        <option value="date-old">Oldest First</option>
+                    </select>
+                </div>
+                
+                <div class="sound-list" id="sound-list">
+                    <!-- Sound list will be populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Lucid's GTAG Hub. I dont own much of the stuff here.</p>
+    </footer>
+
+    <script src="https://unpkg.com/wavesurfer.js@6"></script>
+    <script src="../js/sound-browser.js"></script>
+</body>
+</html> 

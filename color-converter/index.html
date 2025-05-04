@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Converter | Lucid's GTAG Hub</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo-container">
+                <a href="/" class="logo">
+                    Lucid's GTAG Hub
+                </a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/color-converter/" class="active">Color Converter</a></li>
+                <li><a href="/sound-browser/">Sound Browser</a></li>
+                <li><a href="/coming-soon/">Coming Soon</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="page-header">
+            <h1>GTAG Color Converter</h1>
+            <p>Convert GTAG color codes (0-9 RGB) to standard hex format</p>
+        </section>
+
+        <section class="color-converter">
+            <div class="converter-container">
+                <div class="input-group">
+                    <label for="gtag-r">GTAG Red (0-9)</label>
+                    <input type="number" id="gtag-r" min="0" max="9" value="0">
+                </div>
+                <div class="input-group">
+                    <label for="gtag-g">GTAG Green (0-9)</label>
+                    <input type="number" id="gtag-g" min="0" max="9" value="0">
+                </div>
+                <div class="input-group">
+                    <label for="gtag-b">GTAG Blue (0-9)</label>
+                    <input type="number" id="gtag-b" min="0" max="9" value="0">
+                </div>
+                <div class="result-container">
+                    <div class="color-preview"></div>
+                    <div class="result-values">
+                        <div class="result-group">
+                            <span>HEX</span>
+                            <input type="text" id="hex-result" readonly>
+                        </div>
+                        <div class="result-group">
+                            <span>RGB</span>
+                            <input type="text" id="rgb-result" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="color-info">
+                <h2>About GTAG Colors</h2>
+                <p>Gorilla Tag uses a simplified color system where each RGB channel ranges from 0-9 instead of the standard 0-255. This converter helps you translate between these formats.</p>
+                <p>Try entering different values between 0-9 for each color channel to see how they map to standard web colors.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Lucid's GTAG Hub. I dont own much of the stuff here.</p>
+    </footer>
+
+    <script src="../js/color-converter.js"></script>
+</body>
+</html> 
