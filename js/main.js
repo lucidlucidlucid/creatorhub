@@ -41,6 +41,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const nav = document.querySelector('nav');
         const navLinks = document.querySelector('.nav-links');
         
+        // Ensure all nav links are included in mobile menu (including Terms)
+        const navItems = document.querySelectorAll('.nav-links li');
+        navItems.forEach(item => {
+            item.style.display = 'block'; // Make sure all items are visible
+        });
+        
         // Create hamburger button
         const hamburgerBtn = document.createElement('button');
         hamburgerBtn.className = 'hamburger-menu';
