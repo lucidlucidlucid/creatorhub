@@ -239,13 +239,44 @@ document.addEventListener('DOMContentLoaded', () => {
             wavesurfer.play();
             playBtn.innerHTML = '<i class="fas fa-pause"></i>';
             sound.isPlaying = true;
+            
+            // Add keyboard event listener for spacebar to pause/play
+            const handleKeyDown = function(e) {
+                if (e.code === 'Space' && sound.isPlaying) {
+                    e.preventDefault();
+                    wavesurfer.pause();
+                    playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                    sound.isPlaying = false;
+                    document.removeEventListener('keydown', handleKeyDown);
+                }
+            };
+            
+            document.addEventListener('keydown', handleKeyDown);
+            
+            // Also handle when clicking anywhere on the document
+            const handleDocumentClick = function(e) {
+                // Only handle if we didn't click on play button or waveform
+                if (!e.target.closest('.play-btn') && !e.target.closest('.waveform') && sound.isPlaying) {
+                    wavesurfer.pause();
+                    playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                    sound.isPlaying = false;
+                    document.removeEventListener('click', handleDocumentClick, true);
+                }
+            };
+            
+            // Use capture phase to ensure we get the click event before other handlers
+            document.addEventListener('click', handleDocumentClick, true);
         }
     }
     
     function downloadSound(sound) {
         const a = document.createElement('a');
         a.href = sound.path;
+        
+        // Use the original filename without any prefix
+        // We just set it to sound.name directly which contains the original filename
         a.download = sound.name;
+        
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
