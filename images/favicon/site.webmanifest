@@ -1,0 +1,14 @@
+{
+  "name": "Lucid's GTAG Hub",
+  "short_name": "GTAG Hub",
+  "icons": [
+    {
+      "src": "/images/favicon.jpg",
+      "sizes": "1080x1080",
+      "type": "image/jpeg"
+    }
+  ],
+  "theme_color": "#1c2924",
+  "background_color": "#1c2924",
+  "display": "standalone"
+} 
