@@ -7,12 +7,19 @@ document.addEventListener('DOMContentLoaded', () => {
         el.style.textTransform = "uppercase";
     });
 
+    // Elements
     const redInput = document.getElementById('gtag-r');
     const greenInput = document.getElementById('gtag-g');
     const blueInput = document.getElementById('gtag-b');
-    const hexResult = document.getElementById('hex-result');
-    const rgbResult = document.getElementById('rgb-result');
-    const colorPreview = document.querySelector('.color-preview');
+    const redSlider = document.getElementById('gtag-r-slider');
+    const greenSlider = document.getElementById('gtag-g-slider');
+    const blueSlider = document.getElementById('gtag-b-slider');
+    const hexDisplay = document.getElementById('hex-display');
+    const rgbDisplay = document.getElementById('rgb-display');
+    const colorDisplay = document.getElementById('color-display');
+    const randomButton = document.getElementById('random-color');
+    const resetButton = document.getElementById('reset-color');
+    const copyButtons = document.querySelectorAll('.copy-btn');
 
     // Function to convert GTAG color (0-9) to standard RGB (0-255)
     function gtagToRgb(value) {
@@ -40,45 +47,102 @@ document.addEventListener('DOMContentLoaded', () => {
         return value;
     }
 
-    // Function to convert and update the display
-    function convertColor() {
-        const r = validateInput(redInput);
-        const g = validateInput(greenInput);
-        const b = validateInput(blueInput);
+    // Function to update sliders from inputs
+    function updateSliderFromInput(input, slider) {
+        const value = validateInput(input);
+        slider.value = value;
+        return value;
+    }
 
+    // Function to update inputs from sliders
+    function updateInputFromSlider(slider, input) {
+        const value = parseInt(slider.value);
+        input.value = value;
+        return value;
+    }
+
+    // Function to convert and update the display
+    function updateColorDisplay() {
+        // Get the current GTAG RGB values
+        const r = parseInt(redInput.value);
+        const g = parseInt(greenInput.value);
+        const b = parseInt(blueInput.value);
+
+        // Convert to standard RGB
         const standardR = gtagToRgb(r);
         const standardG = gtagToRgb(g);
         const standardB = gtagToRgb(b);
 
+        // Convert to hex
         const hexColor = rgbToHex(standardR, standardG, standardB);
         
-        // Update results
-        hexResult.value = hexColor;
-        rgbResult.value = `rgb(${standardR}, ${standardG}, ${standardB})`;
-        colorPreview.style.backgroundColor = hexColor;
+        // Update color displays
+        colorDisplay.style.backgroundColor = hexColor;
+        hexDisplay.textContent = hexColor.toUpperCase();
+        rgbDisplay.textContent = `rgb(${standardR}, ${standardG}, ${standardB})`;
+
+        // Update slider colors
+        updateSliderBackground(redSlider, 'red', r);
+        updateSliderBackground(greenSlider, 'green', g);
+        updateSliderBackground(blueSlider, 'blue', b);
     }
 
-    // Auto-convert when inputs change
-    redInput.addEventListener('input', convertColor);
-    greenInput.addEventListener('input', convertColor);
-    blueInput.addEventListener('input', convertColor);
+    // Update the slider background to show the color gradient
+    function updateSliderBackground(slider, color, value) {
+        let gradientColor;
+        
+        switch(color) {
+            case 'red':
+                gradientColor = `rgb(${gtagToRgb(value)}, 0, 0)`;
+                break;
+            case 'green':
+                gradientColor = `rgb(0, ${gtagToRgb(value)}, 0)`;
+                break;
+            case 'blue':
+                gradientColor = `rgb(0, 0, ${gtagToRgb(value)})`;
+                break;
+        }
+        
+        // Set the slider's background to show the current color
+        slider.style.setProperty('--thumb-color', gradientColor);
+    }
 
-    // Initialize with default values
-    convertColor();
+    // Generate a random GTAG color
+    function generateRandomColor() {
+        redInput.value = Math.floor(Math.random() * 10);
+        greenInput.value = Math.floor(Math.random() * 10);
+        blueInput.value = Math.floor(Math.random() * 10);
+        
+        redSlider.value = redInput.value;
+        greenSlider.value = greenInput.value;
+        blueSlider.value = blueInput.value;
+        
+        updateColorDisplay();
+    }
 
-    // Add copy to clipboard functionality
-    hexResult.addEventListener('click', function() {
-        this.select();
-        navigator.clipboard.writeText(this.value);
-        showTooltip(this, 'Copied!');
-    });
+    // Reset the color to black (0,0,0)
+    function resetColor() {
+        redInput.value = 0;
+        greenInput.value = 0;
+        blueInput.value = 0;
+        
+        redSlider.value = 0;
+        greenSlider.value = 0;
+        blueSlider.value = 0;
+        
+        updateColorDisplay();
+    }
 
-    rgbResult.addEventListener('click', function() {
-        this.select();
-        navigator.clipboard.writeText(this.value);
-        showTooltip(this, 'Copied!');
-    });
+    // Copy text to clipboard
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            // Success
+        }).catch(err => {
+            console.error('Could not copy text: ', err);
+        });
+    }
 
+    // Show a tooltip
     function showTooltip(element, message) {
         const tooltip = document.createElement('div');
         tooltip.className = 'tooltip';
@@ -110,4 +174,64 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 300);
         }, 1500);
     }
+
+    // Event listeners for number inputs
+    redInput.addEventListener('input', () => {
+        updateSliderFromInput(redInput, redSlider);
+        updateColorDisplay();
+    });
+
+    greenInput.addEventListener('input', () => {
+        updateSliderFromInput(greenInput, greenSlider);
+        updateColorDisplay();
+    });
+
+    blueInput.addEventListener('input', () => {
+        updateSliderFromInput(blueInput, blueSlider);
+        updateColorDisplay();
+    });
+
+    // Event listeners for sliders
+    redSlider.addEventListener('input', () => {
+        updateInputFromSlider(redSlider, redInput);
+        updateColorDisplay();
+    });
+
+    greenSlider.addEventListener('input', () => {
+        updateInputFromSlider(greenSlider, greenInput);
+        updateColorDisplay();
+    });
+
+    blueSlider.addEventListener('input', () => {
+        updateInputFromSlider(blueSlider, blueInput);
+        updateColorDisplay();
+    });
+
+    // Event listeners for buttons
+    randomButton.addEventListener('click', generateRandomColor);
+    resetButton.addEventListener('click', resetColor);
+
+    // Event listeners for copy buttons
+    copyButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetId = button.getAttribute('data-target');
+            const targetElement = document.getElementById(targetId);
+            copyToClipboard(targetElement.textContent);
+            showTooltip(button, 'Copied!');
+        });
+    });
+
+    // Direct click on hex or rgb displays for copying
+    hexDisplay.addEventListener('click', function() {
+        copyToClipboard(this.textContent);
+        showTooltip(this, 'Copied!');
+    });
+
+    rgbDisplay.addEventListener('click', function() {
+        copyToClipboard(this.textContent);
+        showTooltip(this, 'Copied!');
+    });
+
+    // Initialize with default values
+    updateColorDisplay();
 }); 
