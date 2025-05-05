@@ -1298,11 +1298,6 @@ footer {
     letter-spacing: 1px;
 }
 
-.date {
-    color: var(--light-text);
-    font-size: 14px;
-}
-
 .changelog-entry p {
     color: var(--light-text);
     line-height: 1.6;
