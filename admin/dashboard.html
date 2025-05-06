@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Lucid's GTAG Hub</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="./admin.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo-container">
+                <a href="/" class="logo">
+                    Lucid's GTAG Hub
+                </a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="../color-converter/">Color Converter</a></li>
+                <li><a href="../sound-browser/">Sound Browser</a></li>
+                <li><a href="../assets/">Assets Browser</a></li>
+                <li><a href="../useful-links/">Useful Links</a></li>
+                <li><a href="../thanks/">Thank You</a></li>
+                <li><a href="../terms/">Terms</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="page-header">
+            <h1>Admin Dashboard</h1>
+            <p>Manage your GTAG Hub content</p>
+            <button id="logoutButton" class="logout-button">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </section>
+
+        <section class="admin-dashboard">
+            <div class="welcome-message">
+                <h2>Welcome to the Admin Dashboard</h2>
+                <p>You've successfully logged in to the secure admin area.</p>
+                <p id="userEmail"></p>
+            </div>
+            
+            <!-- Analytics Dashboard -->
+            <div class="dashboard-section analytics-section">
+                <h2><i class="fas fa-chart-line"></i> Site Analytics</h2>
+                
+                <div class="analytics-controls">
+                    <div class="date-range-selector">
+                        <label for="dateRange">Time Range:</label>
+                        <select id="dateRange">
+                            <option value="day">Last 24 Hours</option>
+                            <option value="week" selected>Last 7 Days</option>
+                            <option value="month">Last 30 Days</option>
+                            <option value="year">Last Year</option>
+                        </select>
+                    </div>
+                    <button id="refreshAnalytics" class="refresh-button">
+                        <i class="fas fa-sync-alt"></i> Refresh Data
+                    </button>
+                </div>
+                
+                <div class="analytics-cards">
+                    <div class="analytics-card">
+                        <h3>Total Visitors</h3>
+                        <div class="stat-value" id="totalVisitors">--</div>
+                        <div class="trend-indicator" id="visitorsTrend">
+                            <i class="fas fa-arrow-up"></i> <span>0%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="analytics-card">
+                        <h3>Page Views</h3>
+                        <div class="stat-value" id="totalPageViews">--</div>
+                        <div class="trend-indicator" id="pageViewsTrend">
+                            <i class="fas fa-arrow-up"></i> <span>0%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="analytics-card">
+                        <h3>Avg. Session Duration</h3>
+                        <div class="stat-value" id="avgSessionDuration">--</div>
+                    </div>
+                </div>
+                
+                <div class="analytics-charts">
+                    <div class="chart-container">
+                        <h3>Visitors Over Time</h3>
+                        <canvas id="visitorsChart"></canvas>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h3>Popular Pages</h3>
+                        <canvas id="pagesChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="real-time-container">
+                    <h3><i class="fas fa-satellite-dish"></i> Real-time Activity</h3>
+                    <div id="realtimeCounter">
+                        <span id="activeUsers">0</span> active users right now
+                    </div>
+                    <div id="realtimeLog" class="realtime-log">
+                        <div class="log-message">Waiting for activity data...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Lucid's GTAG Hub. All rights reserved.</p>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-analytics-compat.js"></script>
+    
+    <!-- Dashboard Scripts -->
+    <script src="./js/dashboard.js"></script>
+    <script src="./js/admin-analytics.js"></script>
+</body>
+</html> 

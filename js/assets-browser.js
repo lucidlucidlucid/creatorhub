@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     })
                     .catch(error => {
                         console.error('Error processing folders:', error);
-                        loadingIndicator.style.display = 'none';
+                loadingIndicator.style.display = 'none';
                     });
             })
             .catch(error => {
@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
             assetsGrid.innerHTML = '<div class="no-results">No assets match your search.</div>';
             return;
         }
-
+        
         // If we're on the "all" tab, group assets by category (folder)
         if (activeCategory === 'all') {
             // First get all unique categories from assets
@@ -319,24 +319,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function createAssetItem(asset) {
-        const assetItem = document.createElement('div');
-        assetItem.className = 'asset-item';
+            const assetItem = document.createElement('div');
+            assetItem.className = 'asset-item';
         assetItem.dataset.category = asset.category;
-        
-        // Format file size
-        const sizeInMB = (asset.size / (1024 * 1024)).toFixed(2);
-        const sizeText = sizeInMB < 0.01 ? `${(asset.size / 1024).toFixed(2)} KB` : `${sizeInMB} MB`;
-        
-        // Format date
-        const date = new Date(asset.date);
-        const dateText = date.toLocaleDateString();
-        
-        // Create preview based on asset type
-        let preview;
-        if (asset.type === 'image') {
-            preview = `<div class="asset-preview image-preview">
-                <img src="${asset.path}" alt="${asset.name}" onerror="this.src='../images/image-placeholder.png'">
-            </div>`;
+            
+            // Format file size
+            const sizeInMB = (asset.size / (1024 * 1024)).toFixed(2);
+            const sizeText = sizeInMB < 0.01 ? `${(asset.size / 1024).toFixed(2)} KB` : `${sizeInMB} MB`;
+            
+            // Format date
+            const date = new Date(asset.date);
+            const dateText = date.toLocaleDateString();
+            
+            // Create preview based on asset type
+            let preview;
+            if (asset.type === 'image') {
+                preview = `<div class="asset-preview image-preview">
+                    <img src="${asset.path}" alt="${asset.name}" onerror="this.src='../images/image-placeholder.png'">
+                </div>`;
         } else if (asset.type === 'video') {
             preview = `<div class="asset-preview video-preview">
                 <div class="video-placeholder" data-path="${asset.proxyPath}" data-name="${asset.name}">
@@ -346,41 +346,41 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="video-label">${asset.name.split('.').pop().toUpperCase()}</span>
                 </div>
             </div>`;
-        } else if (asset.type === 'model') {
-            preview = `<div class="asset-preview model-preview">
-                <i class="fas fa-cube"></i>
-            </div>`;
-        } else if (asset.type === 'zip') {
-            preview = `<div class="asset-preview zip-preview">
-                <i class="fas fa-file-archive"></i>
-            </div>`;
-        } else {
-            preview = `<div class="asset-preview other-preview">
-                <i class="fas fa-file"></i>
-            </div>`;
-        }
-        
-        // Create the asset item HTML
-        assetItem.innerHTML = `
-            ${preview}
-            <div class="asset-info">
-                <div class="name">${asset.name}</div>
-                <div class="meta">${asset.type.toUpperCase()} · ${dateText} · ${sizeText}</div>
-            </div>
-            <div class="asset-actions">
+            } else if (asset.type === 'model') {
+                preview = `<div class="asset-preview model-preview">
+                    <i class="fas fa-cube"></i>
+                </div>`;
+            } else if (asset.type === 'zip') {
+                preview = `<div class="asset-preview zip-preview">
+                    <i class="fas fa-file-archive"></i>
+                </div>`;
+            } else {
+                preview = `<div class="asset-preview other-preview">
+                    <i class="fas fa-file"></i>
+                </div>`;
+            }
+            
+            // Create the asset item HTML
+            assetItem.innerHTML = `
+                ${preview}
+                <div class="asset-info">
+                    <div class="name">${asset.name}</div>
+                    <div class="meta">${asset.type.toUpperCase()} · ${dateText} · ${sizeText}</div>
+                </div>
+                <div class="asset-actions">
                 <button class="asset-btn download-btn" title="Download">
-                    <i class="fas fa-download"></i>
-                </button>
-            </div>
-        `;
-        
-        assetsGrid.appendChild(assetItem);
-        
-        // Add event listeners
-        const downloadBtn = assetItem.querySelector('.download-btn');
-        downloadBtn.addEventListener('click', () => {
-            downloadAsset(asset);
-        });
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+            `;
+            
+            assetsGrid.appendChild(assetItem);
+            
+            // Add event listeners
+            const downloadBtn = assetItem.querySelector('.download-btn');
+            downloadBtn.addEventListener('click', () => {
+                downloadAsset(asset);
+            });
         
         // Add video play button event listener if it's a video
         if (asset.type === 'video') {

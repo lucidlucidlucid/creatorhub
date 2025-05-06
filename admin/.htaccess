@@ -1,0 +1,38 @@
+# Prevent directory listing
+Options -Indexes
+
+# Block direct access to the dashboard page
+<Files "dashboard.html">
+  <IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTP_COOKIE} !firebase_auth_token=.+ [NC]
+    RewriteRule ^ index.html [R,L]
+  </IfModule>
+  
+  # Fallback for servers without mod_rewrite
+  <IfModule !mod_rewrite.c>
+    Order deny,allow
+    Deny from all
+  </IfModule>
+</Files>
+
+# Prevent access to all .js files inside js/ except through proper referrers
+<FilesMatch "\.js$">
+  <IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    SetEnvIf Referer "^https?://[^/]+/admin/" local_referrer=1
+    Order deny,allow
+    Deny from all
+    Allow from env=local_referrer
+  </IfModule>
+</FilesMatch>
+
+# Additional security headers
+<IfModule mod_headers.c>
+  # Prevent clickjacking attacks
+  Header always set X-Frame-Options "SAMEORIGIN"
+  # Enable browser's XSS detection protection
+  Header always set X-XSS-Protection "1; mode=block"
+  # Prevent MIME type sniffing
+  Header always set X-Content-Type-Options "nosniff"
+</IfModule> 
