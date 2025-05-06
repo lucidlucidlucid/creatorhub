@@ -36,25 +36,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function setupMobileNavigation() {
-        // Create hamburger menu button
+        // Create hamburger menu button if it doesn't exist
         const header = document.querySelector('header');
         const nav = document.querySelector('nav');
         const navLinks = document.querySelector('.nav-links');
         
-        // Ensure all nav links are included in mobile menu (including Terms)
-        const navItems = document.querySelectorAll('.nav-links li');
-        navItems.forEach(item => {
-            item.style.display = 'block'; // Make sure all items are visible
-        });
+        // Check if hamburger already exists
+        let hamburgerBtn = document.querySelector('.hamburger-menu');
         
-        // Create hamburger button
-        const hamburgerBtn = document.createElement('button');
-        hamburgerBtn.className = 'hamburger-menu';
-        hamburgerBtn.innerHTML = '<span></span><span></span><span></span>';
-        nav.insertBefore(hamburgerBtn, navLinks);
+        if (!hamburgerBtn) {
+            // Create hamburger button
+            hamburgerBtn = document.createElement('button');
+            hamburgerBtn.className = 'hamburger-menu';
+            hamburgerBtn.innerHTML = '<span></span><span></span><span></span>';
+            
+            // Insert hamburger before the nav links
+            if (nav && navLinks) {
+                nav.insertBefore(hamburgerBtn, navLinks);
+            }
+        }
         
         // Toggle menu on click
-        hamburgerBtn.addEventListener('click', () => {
+        hamburgerBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             navLinks.classList.toggle('active');
             hamburgerBtn.classList.toggle('active');
         });
@@ -65,6 +69,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 navLinks.classList.remove('active');
                 hamburgerBtn.classList.remove('active');
             }
+        });
+        
+        // Close menu when clicking a nav link
+        navLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+                hamburgerBtn.classList.remove('active');
+            });
         });
         
         // Make the page adapt to mobile viewing

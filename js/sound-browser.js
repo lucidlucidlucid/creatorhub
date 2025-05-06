@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let wavesurfers = {}; // Store wavesurfer instances for each sound
     
     // Hardcoded repository URL - this is the correct API URL format
-    const apiUrl = 'https://api.github.com/repos/lucidlucidlucid/creatorhub/contents/soundstuff';
+    const apiUrl = 'https://api.github.com/repos/lucidlucidlucid/creatorhub/contents/lucidsgtaghub';
     
     // Show loading indicator immediately
     loadingIndicator.style.display = 'flex';
@@ -273,9 +273,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const a = document.createElement('a');
         a.href = sound.path;
         
-        // Use the original filename without any prefix
-        // We just set it to sound.name directly which contains the original filename
-        a.download = sound.name;
+        // Clean the filename - remove any "soundstuff_" prefix or other prefix patterns
+        let cleanFileName = sound.name;
+        // Remove any prefix pattern like "soundstuff_", "sounds_", etc.
+        if (cleanFileName.includes('_')) {
+            const lastUnderscore = cleanFileName.lastIndexOf('_');
+            if (lastUnderscore > 0) {
+                const possiblePrefix = cleanFileName.substring(0, lastUnderscore + 1);
+                // Only treat it as a prefix if it's not part of the actual filename
+                if (possiblePrefix.includes('sound') || possiblePrefix.includes('stuff')) {
+                    cleanFileName = cleanFileName.substring(lastUnderscore + 1);
+                }
+            }
+        }
+        
+        a.download = cleanFileName;
         
         document.body.appendChild(a);
         a.click();
