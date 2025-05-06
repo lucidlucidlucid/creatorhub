@@ -25,6 +25,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const videoExtensions = ['mp4', 'webm', 'mov', 'avi', 'mkv'];
     const modelExtensions = ['glb', 'gltf', 'obj', 'fbx', 'stl'];
     const zipExtensions = ['zip', 'rar', '7z'];
+
+    // Video proxy settings - enables playing GitHub videos via a proxy service
+    // Set this to true to use a CORS proxy for videos (needed for GitHub hosted files)
+    const useProxyForVideos = true;
+    // This proxy service allows cross-origin requests
+    const proxyUrl = 'https://corsproxy.io/?';
     
     // Show loading indicator immediately
     loadingIndicator.style.display = 'flex';
@@ -62,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return {
                         name: file.name,
                         path: file.download_url,
+                        proxyPath: useProxyForVideos && type === 'video' ? proxyUrl + encodeURIComponent(file.download_url) : file.download_url,
                         date: new Date().toISOString(), // GitHub API doesn't provide date in contents API
                         size: file.size || 0,
                         type: type
@@ -80,16 +87,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Fall back to demo data if GitHub API fails
                 const demoAssets = [
-                    { name: 'gorilla.png', path: '#', date: '2023-09-15T10:30:00Z', size: 1024000, type: 'image' },
-                    { name: 'forest.jpg', path: '#', date: '2023-09-10T14:22:00Z', size: 2048000, type: 'image' },
-                    { name: 'banana.png', path: '#', date: '2023-09-05T09:15:00Z', size: 512000, type: 'image' },
-                    { name: 'gameplay.mp4', path: '#', date: '2023-09-12T13:45:00Z', size: 5120000, type: 'video' },
-                    { name: 'tutorial.webm', path: '#', date: '2023-09-08T17:30:00Z', size: 3584000, type: 'video' },
-                    { name: 'tree.glb', path: '#', date: '2023-09-01T16:45:00Z', size: 3072000, type: 'model' },
-                    { name: 'gorilla_avatar.glb', path: '#', date: '2023-08-25T11:20:00Z', size: 4096000, type: 'model' },
-                    { name: 'assets.zip', path: '#', date: '2023-08-15T12:30:00Z', size: 8192000, type: 'zip' },
-                    { name: 'map.jpg', path: '#', date: '2023-08-20T08:10:00Z', size: 1536000, type: 'image' },
-                    { name: 'cosmetic.glb', path: '#', date: '2023-08-10T15:50:00Z', size: 2560000, type: 'model' },
+                    { name: 'gorilla.png', path: '#', proxyPath: '#', date: '2023-09-15T10:30:00Z', size: 1024000, type: 'image' },
+                    { name: 'forest.jpg', path: '#', proxyPath: '#', date: '2023-09-10T14:22:00Z', size: 2048000, type: 'image' },
+                    { name: 'banana.png', path: '#', proxyPath: '#', date: '2023-09-05T09:15:00Z', size: 512000, type: 'image' },
+                    { name: 'gameplay.mp4', path: '#', proxyPath: '#', date: '2023-09-12T13:45:00Z', size: 5120000, type: 'video' },
+                    { name: 'tutorial.webm', path: '#', proxyPath: '#', date: '2023-09-08T17:30:00Z', size: 3584000, type: 'video' },
+                    { name: 'tree.glb', path: '#', proxyPath: '#', date: '2023-09-01T16:45:00Z', size: 3072000, type: 'model' },
+                    { name: 'gorilla_avatar.glb', path: '#', proxyPath: '#', date: '2023-08-25T11:20:00Z', size: 4096000, type: 'model' },
+                    { name: 'assets.zip', path: '#', proxyPath: '#', date: '2023-08-15T12:30:00Z', size: 8192000, type: 'zip' },
+                    { name: 'map.jpg', path: '#', proxyPath: '#', date: '2023-08-20T08:10:00Z', size: 1536000, type: 'image' },
+                    { name: 'cosmetic.glb', path: '#', proxyPath: '#', date: '2023-08-10T15:50:00Z', size: 2560000, type: 'model' },
                 ];
                 
                 assets = demoAssets;
@@ -135,10 +142,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
             } else if (asset.type === 'video') {
                 preview = `<div class="asset-preview video-preview">
-                    <div class="video-placeholder" data-path="${asset.path}" data-name="${asset.name}">
+                    <div class="video-placeholder" data-path="${asset.proxyPath}" data-name="${asset.name}">
                         <i class="fas fa-video"></i>
                     </div>
-                    <div class="video-play-button" data-path="${asset.path}" data-name="${asset.name}">
+                    <div class="video-play-button" data-path="${asset.proxyPath}" data-name="${asset.name}">
                         <i class="fas fa-play"></i>
                     </div>
                 </div>`;
@@ -185,10 +192,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     e.stopPropagation();
                     playVideo(asset, assetItem);
                 });
-            }
-            
-            // If it's a video, generate thumbnail from first frame
-            if (asset.type === 'video') {
+                
+                // Generate thumbnail from first frame
                 generateVideoThumbnail(asset, assetItem);
             }
         });
@@ -219,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Create the video element
         const video = document.createElement('video');
-        video.src = asset.path;
+        video.src = asset.proxyPath;
         video.className = 'video-element';
         video.setAttribute('playsinline', '');
         video.setAttribute('muted', '');
@@ -248,8 +253,25 @@ document.addEventListener('DOMContentLoaded', () => {
             playButton.querySelector('i').className = 'fas fa-pause';
         });
         
+        // Error handling for video playback
+        video.addEventListener('error', (e) => {
+            console.error('Error playing video:', e);
+            // Display error message inside video container
+            videoPreview.insertAdjacentHTML('beforeend', 
+                `<div class="video-error">
+                    <p>Unable to play video</p>
+                    <p>Try downloading instead</p>
+                </div>`
+            );
+            playButton.style.display = 'none';
+        });
+        
         // Start playing
-        video.play();
+        video.play().catch(e => {
+            console.error('Error autostarting video:', e);
+            // Autoplay failed, just show the controls
+            video.setAttribute('controls', 'true');
+        });
     }
     
     // Function to generate video thumbnails
@@ -259,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Try to allow cross-origin
         tempVideo.crossOrigin = 'anonymous';
-        tempVideo.src = asset.path;
+        tempVideo.src = asset.proxyPath;
         tempVideo.muted = true;
         tempVideo.preload = "metadata";
         
@@ -321,7 +343,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function downloadAsset(asset) {
         const a = document.createElement('a');
-        a.href = asset.path;
+        a.href = asset.path; // Use direct path for download, not proxy
         a.download = asset.name;
         document.body.appendChild(a);
         a.click();
