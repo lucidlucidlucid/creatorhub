@@ -134,9 +134,19 @@ header {
     border-bottom: 1px solid rgba(226, 215, 167, 0.1);
 }
 
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
 .logo-container {
     display: flex;
     align-items: center;
+    flex-shrink: 0;
+    margin-right: 20px;
 }
 
 .logo {
@@ -146,21 +156,14 @@ header {
     font-family: 'Gogga', sans-serif;
     text-transform: uppercase;
     letter-spacing: 1px;
+    white-space: nowrap;
 }
 
 .logo img {
     height: 60px;
 }
 
-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-/* Adjusted navigation design for better spacing */
+/* Navigation styling that works consistently in production */
 .nav-links {
     display: flex;
     list-style: none;
@@ -170,23 +173,31 @@ nav {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     margin: 0;
     padding: 0;
-    flex-wrap: nowrap; /* Prevent wrapping by default */
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+    height: 40px;
 }
 
 .nav-links li {
     position: relative;
-    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    height: 100%;
 }
 
 .nav-links a {
     color: var(--primary-color);
     font-weight: 500;
-    padding: 8px 12px;
+    padding: 0 12px;
     font-size: 14px;
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
+    height: 100%;
     border-right: 1px solid rgba(226, 215, 167, 0.1);
     transition: background-color 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
 }
 
 .nav-links li:last-child a {
@@ -197,6 +208,79 @@ nav {
 .nav-links a:hover {
     background-color: var(--accent-color);
     color: var(--secondary-color);
+}
+
+/* Updated responsive navigation */
+@media (min-width: 992px) {
+    .nav-links a {
+        padding: 0 12px;
+        font-size: 14px;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+    .nav-links a {
+        padding: 0 8px;
+        font-size: 12px;
+    }
+    
+    .logo {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 767px) {
+    header {
+        padding: 15px;
+    }
+    
+    nav {
+        position: relative;
+    }
+    
+    .hamburger-menu {
+        display: flex;
+    }
+    
+    .nav-links {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        background-color: var(--secondary-color);
+        padding: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        width: 100%;
+        z-index: 1000;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        border-bottom: 1px solid var(--border-color);
+        height: auto;
+    }
+    
+    .nav-links.active {
+        max-height: 400px;
+    }
+    
+    .nav-links li {
+        width: 100%;
+        height: auto;
+    }
+    
+    .nav-links a {
+        padding: 15px;
+        height: auto;
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid rgba(226, 215, 167, 0.1);
+        justify-content: center;
+    }
+    
+    .nav-links li:last-child a {
+        border-bottom: none;
+    }
 }
 
 .social-links {
