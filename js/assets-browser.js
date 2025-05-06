@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // File type definitions
     const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'];
+    const videoExtensions = ['mp4', 'webm', 'mov', 'avi', 'mkv'];
     const modelExtensions = ['glb', 'gltf', 'obj', 'fbx', 'stl'];
     const zipExtensions = ['zip', 'rar', '7z'];
     
@@ -41,15 +42,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 return response.json();
             })
             .then(data => {
-                // Filter for image, model and zip files
+                // Filter for image, video, model and zip files
                 assets = data.filter(file => {
                     const extension = file.name.split('.').pop().toLowerCase();
-                    return [...imageExtensions, ...modelExtensions, ...zipExtensions].includes(extension);
+                    return [...imageExtensions, ...videoExtensions, ...modelExtensions, ...zipExtensions].includes(extension);
                 }).map(file => {
                     const extension = file.name.split('.').pop().toLowerCase();
                     let type = 'other';
                     if (imageExtensions.includes(extension)) {
                         type = 'image';
+                    } else if (videoExtensions.includes(extension)) {
+                        type = 'video';
                     } else if (modelExtensions.includes(extension)) {
                         type = 'model';
                     } else if (zipExtensions.includes(extension)) {
@@ -80,6 +83,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     { name: 'gorilla.png', path: '#', date: '2023-09-15T10:30:00Z', size: 1024000, type: 'image' },
                     { name: 'forest.jpg', path: '#', date: '2023-09-10T14:22:00Z', size: 2048000, type: 'image' },
                     { name: 'banana.png', path: '#', date: '2023-09-05T09:15:00Z', size: 512000, type: 'image' },
+                    { name: 'gameplay.mp4', path: '#', date: '2023-09-12T13:45:00Z', size: 5120000, type: 'video' },
+                    { name: 'tutorial.webm', path: '#', date: '2023-09-08T17:30:00Z', size: 3584000, type: 'video' },
                     { name: 'tree.glb', path: '#', date: '2023-09-01T16:45:00Z', size: 3072000, type: 'model' },
                     { name: 'gorilla_avatar.glb', path: '#', date: '2023-08-25T11:20:00Z', size: 4096000, type: 'model' },
                     { name: 'assets.zip', path: '#', date: '2023-08-15T12:30:00Z', size: 8192000, type: 'zip' },
@@ -128,6 +133,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 preview = `<div class="asset-preview image-preview">
                     <img src="${asset.path}" alt="${asset.name}" onerror="this.src='../images/image-placeholder.png'">
                 </div>`;
+            } else if (asset.type === 'video') {
+                preview = `<div class="asset-preview video-preview">
+                    <div class="video-placeholder">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <div class="video-play-button" data-path="${asset.path}" data-name="${asset.name}">
+                        <i class="fas fa-play"></i>
+                    </div>
+                </div>`;
             } else if (asset.type === 'model') {
                 preview = `<div class="asset-preview model-preview">
                     <i class="fas fa-cube"></i>
@@ -163,7 +177,74 @@ document.addEventListener('DOMContentLoaded', () => {
             downloadBtn.addEventListener('click', () => {
                 downloadAsset(asset);
             });
+            
+            // Add video play button event listener if it's a video
+            if (asset.type === 'video') {
+                const playBtn = assetItem.querySelector('.video-play-button');
+                playBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    playVideo(asset, assetItem);
+                });
+            }
         });
+    }
+    
+    function playVideo(asset, assetItem) {
+        const videoPreview = assetItem.querySelector('.video-preview');
+        const existingVideo = videoPreview.querySelector('video');
+        
+        // If video is already created, toggle play/pause
+        if (existingVideo) {
+            if (existingVideo.paused) {
+                existingVideo.play();
+                assetItem.querySelector('.video-play-button i').className = 'fas fa-pause';
+            } else {
+                existingVideo.pause();
+                assetItem.querySelector('.video-play-button i').className = 'fas fa-play';
+            }
+            return;
+        }
+        
+        // Otherwise create a new video element
+        const placeholder = videoPreview.querySelector('.video-placeholder');
+        const playButton = videoPreview.querySelector('.video-play-button');
+        
+        // Hide the placeholder
+        placeholder.style.display = 'none';
+        
+        // Create the video element
+        const video = document.createElement('video');
+        video.src = asset.path;
+        video.className = 'video-element';
+        video.setAttribute('playsinline', '');
+        video.setAttribute('muted', '');
+        video.setAttribute('controls', '');
+        video.setAttribute('controlsList', 'nodownload');
+        
+        // Update the play button icon
+        playButton.querySelector('i').className = 'fas fa-pause';
+        
+        // Add video to the preview
+        videoPreview.insertBefore(video, playButton);
+        
+        // When video ends, show placeholder again and reset play button
+        video.addEventListener('ended', () => {
+            placeholder.style.display = 'flex';
+            playButton.querySelector('i').className = 'fas fa-play';
+        });
+        
+        // When video is paused, update the play button
+        video.addEventListener('pause', () => {
+            playButton.querySelector('i').className = 'fas fa-play';
+        });
+        
+        // When video is playing, update the play button
+        video.addEventListener('play', () => {
+            playButton.querySelector('i').className = 'fas fa-pause';
+        });
+        
+        // Start playing
+        video.play();
     }
     
     function downloadAsset(asset) {
