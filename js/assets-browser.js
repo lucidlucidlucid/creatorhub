@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
             } else if (asset.type === 'video') {
                 preview = `<div class="asset-preview video-preview">
-                    <div class="video-placeholder">
+                    <div class="video-placeholder" data-path="${asset.path}" data-name="${asset.name}">
                         <i class="fas fa-video"></i>
                     </div>
                     <div class="video-play-button" data-path="${asset.path}" data-name="${asset.name}">
@@ -185,6 +185,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     e.stopPropagation();
                     playVideo(asset, assetItem);
                 });
+            }
+            
+            // If it's a video, generate thumbnail from first frame
+            if (asset.type === 'video') {
+                generateVideoThumbnail(asset, assetItem);
             }
         });
     }
@@ -245,6 +250,73 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Start playing
         video.play();
+    }
+    
+    // Function to generate video thumbnails
+    function generateVideoThumbnail(asset, assetItem) {
+        // Create a temporary video element
+        const tempVideo = document.createElement('video');
+        
+        // Try to allow cross-origin
+        tempVideo.crossOrigin = 'anonymous';
+        tempVideo.src = asset.path;
+        tempVideo.muted = true;
+        tempVideo.preload = "metadata";
+        
+        // Set a timeout to handle stalled loading
+        const thumbnailTimeout = setTimeout(() => {
+            console.log('Thumbnail generation timed out');
+            // If timeout occurs, just keep the default icon
+            tempVideo.src = '';
+            tempVideo.load();
+        }, 3000); // 3 second timeout
+        
+        // Once metadata is loaded, seek to the first frame
+        tempVideo.addEventListener('loadedmetadata', function() {
+            // Set video to first frame (0.1 seconds to ensure we get a frame)
+            tempVideo.currentTime = 0.1;
+        });
+        
+        // Once the video has seeked to the specified time
+        tempVideo.addEventListener('seeked', function() {
+            clearTimeout(thumbnailTimeout);
+            
+            // Create a canvas and draw the video frame
+            const canvas = document.createElement('canvas');
+            canvas.width = tempVideo.videoWidth;
+            canvas.height = tempVideo.videoHeight;
+            const ctx = canvas.getContext('2d');
+            
+            try {
+                ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
+                
+                // Convert canvas to image and set it as the thumbnail
+                const thumbnail = canvas.toDataURL('image/jpeg');
+                const placeholder = assetItem.querySelector('.video-placeholder');
+                
+                // Replace icon with thumbnail image
+                placeholder.innerHTML = '';
+                placeholder.style.background = `url(${thumbnail}) center center / contain no-repeat`;
+                placeholder.style.width = '100%';
+                placeholder.style.height = '100%';
+            } catch (e) {
+                console.error('Error generating thumbnail:', e);
+                // Keep the icon if thumbnail generation fails - could be a CORS issue
+            }
+            
+            // Clean up temporary video element
+            tempVideo.src = '';
+            tempVideo.load();
+        });
+        
+        // Handle errors
+        tempVideo.addEventListener('error', function(e) {
+            clearTimeout(thumbnailTimeout);
+            console.error('Error loading video for thumbnail:', e);
+        });
+        
+        // Load the video
+        tempVideo.load();
     }
     
     function downloadAsset(asset) {

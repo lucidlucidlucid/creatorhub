@@ -1259,6 +1259,10 @@ footer {
     font-size: 70px;
     color: #e74c3c; /* Red color for video files */
     z-index: 1;
+    background-color: #000;
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
 }
 
 .video-play-button {
