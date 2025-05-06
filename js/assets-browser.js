@@ -11,11 +11,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingIndicator = document.getElementById('loading-indicator');
     const assetsGrid = document.getElementById('assets-grid');
     const searchFilter = document.getElementById('search-filter');
-    const typeFilter = document.getElementById('type-filter');
     const sortFilter = document.getElementById('sort-filter');
+    const categoryTabsContainer = document.querySelector('.asset-categories');
+
+    // Current active category
+    let activeCategory = 'all';
 
     // Assets data
     let assets = [];
+    let categories = ['all']; // Start with 'all' category
     
     // Hardcoded repository URL - using the correct path for the main branch
     const apiUrl = 'https://api.github.com/repos/lucidlucidlucid/creatorhub/contents/assetsstuff?ref=main';
@@ -36,9 +40,57 @@ document.addEventListener('DOMContentLoaded', () => {
     loadingIndicator.style.display = 'flex';
     
     // Fetch assets from the repository
-    fetchAssets();
+    fetchFolders();
 
-    function fetchAssets() {
+    function setupCategoryTabs() {
+        // Clear existing tabs
+        categoryTabsContainer.innerHTML = '';
+        
+        // Create "All" category tab
+        const allTab = document.createElement('button');
+        allTab.className = 'category-tab active';
+        allTab.dataset.category = 'all';
+        allTab.textContent = 'All Assets';
+        categoryTabsContainer.appendChild(allTab);
+        
+        // Create tabs for each category
+        categories.forEach(category => {
+            if (category === 'all') return; // Skip 'all', we already added it
+            
+            const tab = document.createElement('button');
+            tab.className = 'category-tab';
+            tab.dataset.category = category;
+            tab.textContent = formatCategoryName(category);
+            categoryTabsContainer.appendChild(tab);
+        });
+        
+        // Set up category tab click events
+        document.querySelectorAll('.category-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Get category from data attribute
+                activeCategory = tab.dataset.category;
+                
+                // Filter and display assets
+                filterAssets();
+            });
+        });
+    }
+    
+    // Format category name (folder name) for display
+    function formatCategoryName(name) {
+        // Convert folder name to title case with spaces
+        return name.split('-').map(word => 
+            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        ).join(' ');
+    }
+
+    function fetchFolders() {
         // Fetch the repository contents using GitHub API
         fetch(apiUrl)
             .then(response => {
@@ -48,58 +100,64 @@ document.addEventListener('DOMContentLoaded', () => {
                 return response.json();
             })
             .then(data => {
-                // Filter for image, video, model and zip files
-                assets = data.filter(file => {
-                    const extension = file.name.split('.').pop().toLowerCase();
-                    return [...imageExtensions, ...videoExtensions, ...modelExtensions, ...zipExtensions].includes(extension);
-                }).map(file => {
-                    const extension = file.name.split('.').pop().toLowerCase();
-                    let type = 'other';
-                    if (imageExtensions.includes(extension)) {
-                        type = 'image';
-                    } else if (videoExtensions.includes(extension)) {
-                        type = 'video';
-                    } else if (modelExtensions.includes(extension)) {
-                        type = 'model';
-                    } else if (zipExtensions.includes(extension)) {
-                        type = 'zip';
-                    }
-                    
-                    return {
-                        name: file.name,
-                        path: file.download_url,
-                        proxyPath: useProxyForVideos && type === 'video' ? proxyUrl + encodeURIComponent(file.download_url) : file.download_url,
-                        date: new Date().toISOString(), // GitHub API doesn't provide date in contents API
-                        size: file.size || 0,
-                        type: type
-                    };
-                });
+                // Separate folders and files
+                const folders = data.filter(item => item.type === 'dir');
+                const rootFiles = data.filter(item => item.type === 'file');
                 
-                if (assets.length === 0) {
-                    assetsGrid.innerHTML = '<div class="no-results">No assets found in the repository.</div>';
-                } else {
+                // Process root-level files
+                processFiles(rootFiles, 'root');
+                
+                // If no folders found, just display the root files
+                if (folders.length === 0) {
+                    setupCategoryTabs();
                     displayAssets(assets);
+                    loadingIndicator.style.display = 'none';
+                    return;
                 }
-                loadingIndicator.style.display = 'none';
+                
+                // Add folder names to categories
+                categories = ['all', ...folders.map(folder => folder.name)];
+                
+                // Create a promise for each folder to fetch its contents
+                const folderPromises = folders.map(folder => 
+                    fetch(folder.url)
+                        .then(response => response.json())
+                        .then(folderData => {
+                            // Process files in this folder
+                            processFiles(folderData, folder.name);
+                        })
+                        .catch(error => {
+                            console.error(`Error fetching contents of folder ${folder.name}:`, error);
+                        })
+                );
+                
+                // When all folder contents are fetched
+                Promise.all(folderPromises)
+                    .then(() => {
+                        // Set up category tabs based on folders
+                        setupCategoryTabs();
+                        
+                        // Display assets
+                        displayAssets(assets);
+                        
+                        // Hide loading indicator
+                        loadingIndicator.style.display = 'none';
+                    })
+                    .catch(error => {
+                        console.error('Error processing folders:', error);
+                        loadingIndicator.style.display = 'none';
+                    });
             })
             .catch(error => {
-                console.error('Error fetching assets:', error);
+                console.error('Error fetching repository contents:', error);
                 
                 // Fall back to demo data if GitHub API fails
-                const demoAssets = [
-                    { name: 'gorilla.png', path: '#', proxyPath: '#', date: '2023-09-15T10:30:00Z', size: 1024000, type: 'image' },
-                    { name: 'forest.jpg', path: '#', proxyPath: '#', date: '2023-09-10T14:22:00Z', size: 2048000, type: 'image' },
-                    { name: 'banana.png', path: '#', proxyPath: '#', date: '2023-09-05T09:15:00Z', size: 512000, type: 'image' },
-                    { name: 'gameplay.mp4', path: '#', proxyPath: '#', date: '2023-09-12T13:45:00Z', size: 5120000, type: 'video' },
-                    { name: 'tutorial.webm', path: '#', proxyPath: '#', date: '2023-09-08T17:30:00Z', size: 3584000, type: 'video' },
-                    { name: 'tree.glb', path: '#', proxyPath: '#', date: '2023-09-01T16:45:00Z', size: 3072000, type: 'model' },
-                    { name: 'gorilla_avatar.glb', path: '#', proxyPath: '#', date: '2023-08-25T11:20:00Z', size: 4096000, type: 'model' },
-                    { name: 'assets.zip', path: '#', proxyPath: '#', date: '2023-08-15T12:30:00Z', size: 8192000, type: 'zip' },
-                    { name: 'map.jpg', path: '#', proxyPath: '#', date: '2023-08-20T08:10:00Z', size: 1536000, type: 'image' },
-                    { name: 'cosmetic.glb', path: '#', proxyPath: '#', date: '2023-08-10T15:50:00Z', size: 2560000, type: 'model' },
-                ];
+                useDemoData();
                 
-                assets = demoAssets;
+                // Set up tabs with demo categories
+                setupCategoryTabs();
+                
+                // Display demo assets
                 displayAssets(assets);
                 
                 // Show error message
@@ -112,6 +170,65 @@ document.addEventListener('DOMContentLoaded', () => {
                 loadingIndicator.style.display = 'none';
             });
     }
+    
+    function processFiles(files, category) {
+        // Filter for supported file types
+        const supportedFiles = files.filter(file => {
+            const extension = file.name.split('.').pop().toLowerCase();
+            return [...imageExtensions, ...videoExtensions, ...modelExtensions, ...zipExtensions].includes(extension);
+        });
+        
+        // Process each file
+        supportedFiles.forEach(file => {
+            const extension = file.name.split('.').pop().toLowerCase();
+            let type = 'other';
+            
+            if (imageExtensions.includes(extension)) {
+                type = 'image';
+            } else if (videoExtensions.includes(extension)) {
+                type = 'video';
+            } else if (modelExtensions.includes(extension)) {
+                type = 'model';
+            } else if (zipExtensions.includes(extension)) {
+                type = 'zip';
+            }
+            
+            // Add to assets array
+            assets.push({
+                name: file.name,
+                path: file.download_url,
+                proxyPath: useProxyForVideos && type === 'video' ? proxyUrl + encodeURIComponent(file.download_url) : file.download_url,
+                date: new Date().toISOString(), // GitHub API doesn't provide date in contents API
+                size: file.size || 0,
+                type: type,
+                category: category
+            });
+        });
+    }
+    
+    function useDemoData() {
+        // Demo categories based on folders
+        categories = ['all', 'characters', 'props', 'textures', 'environments'];
+        
+        // Demo assets with category assignments
+        const demoAssets = [
+            { name: 'gorilla.png', path: '#', proxyPath: '#', date: '2023-09-15T10:30:00Z', size: 1024000, type: 'image', category: 'characters' },
+            { name: 'forest.jpg', path: '#', proxyPath: '#', date: '2023-09-10T14:22:00Z', size: 2048000, type: 'image', category: 'environments' },
+            { name: 'banana.png', path: '#', proxyPath: '#', date: '2023-09-05T09:15:00Z', size: 512000, type: 'image', category: 'props' },
+            { name: 'gameplay.mp4', path: '#', proxyPath: '#', date: '2023-09-12T13:45:00Z', size: 5120000, type: 'video', category: 'environments' },
+            { name: 'tutorial.webm', path: '#', proxyPath: '#', date: '2023-09-08T17:30:00Z', size: 3584000, type: 'video', category: 'characters' },
+            { name: 'tree.glb', path: '#', proxyPath: '#', date: '2023-09-01T16:45:00Z', size: 3072000, type: 'model', category: 'props' },
+            { name: 'gorilla_avatar.glb', path: '#', proxyPath: '#', date: '2023-08-25T11:20:00Z', size: 4096000, type: 'model', category: 'characters' },
+            { name: 'assets.zip', path: '#', proxyPath: '#', date: '2023-08-15T12:30:00Z', size: 8192000, type: 'zip', category: 'textures' },
+            { name: 'map.jpg', path: '#', proxyPath: '#', date: '2023-08-20T08:10:00Z', size: 1536000, type: 'image', category: 'environments' },
+            { name: 'cosmetic.glb', path: '#', proxyPath: '#', date: '2023-08-10T15:50:00Z', size: 2560000, type: 'model', category: 'characters' },
+            { name: 'texture_pack.zip', path: '#', proxyPath: '#', date: '2023-08-05T09:20:00Z', size: 10240000, type: 'zip', category: 'textures' },
+            { name: 'pattern.png', path: '#', proxyPath: '#', date: '2023-07-30T16:45:00Z', size: 768000, type: 'image', category: 'textures' },
+            { name: 'logo.png', path: '#', proxyPath: '#', date: '2023-07-25T11:10:00Z', size: 256000, type: 'image', category: 'root' },
+        ];
+        
+        assets = demoAssets;
+    }
 
     function displayAssets(assetsToDisplay) {
         assetsGrid.innerHTML = '';
@@ -120,83 +237,118 @@ document.addEventListener('DOMContentLoaded', () => {
             assetsGrid.innerHTML = '<div class="no-results">No assets match your search.</div>';
             return;
         }
-        
-        assetsToDisplay.forEach((asset, index) => {
-            const assetItem = document.createElement('div');
-            assetItem.className = 'asset-item';
-            assetItem.dataset.index = index;
+
+        // If we're on the "all" tab, group assets by category (folder)
+        if (activeCategory === 'all') {
+            // First get all unique categories from assets
+            const uniqueCategories = [...new Set(assetsToDisplay.map(asset => asset.category))];
             
-            // Format file size
-            const sizeInMB = (asset.size / (1024 * 1024)).toFixed(2);
-            const sizeText = sizeInMB < 0.01 ? `${(asset.size / 1024).toFixed(2)} KB` : `${sizeInMB} MB`;
-            
-            // Format date
-            const date = new Date(asset.date);
-            const dateText = date.toLocaleDateString();
-            
-            // Create preview based on asset type
-            let preview;
-            if (asset.type === 'image') {
-                preview = `<div class="asset-preview image-preview">
-                    <img src="${asset.path}" alt="${asset.name}" onerror="this.src='../images/image-placeholder.png'">
-                </div>`;
-            } else if (asset.type === 'video') {
-                preview = `<div class="asset-preview video-preview">
-                    <div class="video-placeholder" data-path="${asset.proxyPath}" data-name="${asset.name}">
-                        <i class="fas fa-video"></i>
-                    </div>
-                    <div class="video-play-button" data-path="${asset.proxyPath}" data-name="${asset.name}">
-                        <i class="fas fa-play"></i>
-                    </div>
-                </div>`;
-            } else if (asset.type === 'model') {
-                preview = `<div class="asset-preview model-preview">
-                    <i class="fas fa-cube"></i>
-                </div>`;
-            } else if (asset.type === 'zip') {
-                preview = `<div class="asset-preview zip-preview">
-                    <i class="fas fa-file-archive"></i>
-                </div>`;
-            } else {
-                preview = `<div class="asset-preview other-preview">
-                    <i class="fas fa-file"></i>
-                </div>`;
-            }
-            
-            // Create the asset item HTML
-            assetItem.innerHTML = `
-                ${preview}
-                <div class="asset-info">
-                    <div class="name">${asset.name}</div>
-                    <div class="meta">${asset.type.toUpperCase()} · ${dateText} · ${sizeText}</div>
-                </div>
-                <div class="asset-actions">
-                    <button class="asset-btn download-btn" title="Download" data-index="${index}">
-                        <i class="fas fa-download"></i>
-                    </button>
-                </div>
-            `;
-            
-            assetsGrid.appendChild(assetItem);
-            
-            // Add event listeners
-            const downloadBtn = assetItem.querySelector('.download-btn');
-            downloadBtn.addEventListener('click', () => {
-                downloadAsset(asset);
+            // Sort categories alphabetically but put 'root' at the end if it exists
+            uniqueCategories.sort((a, b) => {
+                if (a === 'root') return 1;
+                if (b === 'root') return -1;
+                return a.localeCompare(b);
             });
             
-            // Add video play button event listener if it's a video
-            if (asset.type === 'video') {
-                const playBtn = assetItem.querySelector('.video-play-button');
-                playBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    playVideo(asset, assetItem);
-                });
+            // Display each category section
+            uniqueCategories.forEach(category => {
+                const categoryAssets = assetsToDisplay.filter(asset => asset.category === category);
                 
-                // Generate thumbnail from first frame
-                generateVideoThumbnail(asset, assetItem);
-            }
+                // Skip if no assets in this category
+                if (categoryAssets.length === 0) return;
+                
+                // Add category header
+                const categorySection = document.createElement('div');
+                categorySection.className = 'category-section';
+                categorySection.innerHTML = `
+                    <h2>${category === 'root' ? 'Uncategorized' : formatCategoryName(category)} <span class="category-count">(${categoryAssets.length})</span></h2>
+                `;
+                assetsGrid.appendChild(categorySection);
+                
+                // Display assets for this category
+                categoryAssets.forEach(asset => createAssetItem(asset));
+            });
+        } else {
+            // Display assets of the selected category
+            assetsToDisplay.forEach(asset => createAssetItem(asset));
+        }
+    }
+    
+    function createAssetItem(asset) {
+        const assetItem = document.createElement('div');
+        assetItem.className = 'asset-item';
+        assetItem.dataset.category = asset.category;
+        
+        // Format file size
+        const sizeInMB = (asset.size / (1024 * 1024)).toFixed(2);
+        const sizeText = sizeInMB < 0.01 ? `${(asset.size / 1024).toFixed(2)} KB` : `${sizeInMB} MB`;
+        
+        // Format date
+        const date = new Date(asset.date);
+        const dateText = date.toLocaleDateString();
+        
+        // Create preview based on asset type
+        let preview;
+        if (asset.type === 'image') {
+            preview = `<div class="asset-preview image-preview">
+                <img src="${asset.path}" alt="${asset.name}" onerror="this.src='../images/image-placeholder.png'">
+            </div>`;
+        } else if (asset.type === 'video') {
+            preview = `<div class="asset-preview video-preview">
+                <div class="video-placeholder" data-path="${asset.proxyPath}" data-name="${asset.name}">
+                    <i class="fas fa-video"></i>
+                </div>
+                <div class="video-play-button" data-path="${asset.proxyPath}" data-name="${asset.name}">
+                    <i class="fas fa-play"></i>
+                </div>
+            </div>`;
+        } else if (asset.type === 'model') {
+            preview = `<div class="asset-preview model-preview">
+                <i class="fas fa-cube"></i>
+            </div>`;
+        } else if (asset.type === 'zip') {
+            preview = `<div class="asset-preview zip-preview">
+                <i class="fas fa-file-archive"></i>
+            </div>`;
+        } else {
+            preview = `<div class="asset-preview other-preview">
+                <i class="fas fa-file"></i>
+            </div>`;
+        }
+        
+        // Create the asset item HTML
+        assetItem.innerHTML = `
+            ${preview}
+            <div class="asset-info">
+                <div class="name">${asset.name}</div>
+                <div class="meta">${asset.type.toUpperCase()} · ${dateText} · ${sizeText}</div>
+            </div>
+            <div class="asset-actions">
+                <button class="asset-btn download-btn" title="Download">
+                    <i class="fas fa-download"></i>
+                </button>
+            </div>
+        `;
+        
+        assetsGrid.appendChild(assetItem);
+        
+        // Add event listeners
+        const downloadBtn = assetItem.querySelector('.download-btn');
+        downloadBtn.addEventListener('click', () => {
+            downloadAsset(asset);
         });
+        
+        // Add video play button event listener if it's a video
+        if (asset.type === 'video') {
+            const playBtn = assetItem.querySelector('.video-play-button');
+            playBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                playVideo(asset, assetItem);
+            });
+            
+            // Generate thumbnail from first frame
+            generateVideoThumbnail(asset, assetItem);
+        }
     }
     
     function playVideo(asset, assetItem) {
@@ -353,7 +505,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Search and filtering
     function filterAssets() {
         const searchTerm = searchFilter.value.toLowerCase();
-        const selectedType = typeFilter.value;
         const sortOption = sortFilter.value;
         
         let filteredAssets = assets.filter(asset => {
@@ -362,8 +513,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return false;
             }
             
-            // Filter by type
-            if (selectedType !== 'all' && asset.type !== selectedType) {
+            // Filter by selected category
+            if (activeCategory !== 'all' && asset.category !== activeCategory) {
                 return false;
             }
             
@@ -391,6 +542,5 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Add event listeners for filters
     searchFilter.addEventListener('input', filterAssets);
-    typeFilter.addEventListener('change', filterAssets);
     sortFilter.addEventListener('change', filterAssets);
 }); 

@@ -31,7 +31,7 @@
     <main>
         <section class="page-header">
             <h1>GTAG Assets Browser</h1>
-            <p>Browse and download images and 3D models for your GTAG projects</p>
+            <p>Browse and download images, videos, 3D models, and more for your GTAG projects</p>
         </section>
 
         <section class="assets-browser">
@@ -41,15 +41,18 @@
             </div>
 
             <div class="assets-list-container">
+                <!-- Asset Category Tabs -->
+                <div class="asset-categories">
+                    <button class="category-tab active" data-category="all">All Assets</button>
+                    <button class="category-tab" data-category="image">Images</button>
+                    <button class="category-tab" data-category="video">Videos</button>
+                    <button class="category-tab" data-category="model">3D Models</button>
+                    <button class="category-tab" data-category="zip">Archives</button>
+                    <button class="category-tab" data-category="other">Other</button>
+                </div>
+
                 <div class="filters">
                     <input type="text" id="search-filter" placeholder="Search assets...">
-                    <select id="type-filter">
-                        <option value="all">All Types</option>
-                        <option value="image">Images</option>
-                        <option value="video">Videos</option>
-                        <option value="model">3D Models</option>
-                        <option value="zip">ZIP Archives</option>
-                    </select>
                     <select id="sort-filter">
                         <option value="name-asc">Name (A-Z)</option>
                         <option value="name-desc">Name (Z-A)</option>
