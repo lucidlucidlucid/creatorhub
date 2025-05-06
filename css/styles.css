@@ -1267,6 +1267,61 @@ footer {
     margin-left: 10px;
 }
 
+/* Category Header (when a specific category is selected) */
+.category-header {
+    grid-column: 1 / -1;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.category-header h1 {
+    font-size: 32px;
+    color: var(--accent-color);
+    font-family: 'Gogga', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    position: relative;
+    display: inline-block;
+}
+
+.category-header h1:after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background-color: var(--accent-color);
+}
+
+/* Type Section Headers (within a category) */
+.type-section {
+    grid-column: 1 / -1;
+    margin-bottom: 15px;
+    margin-top: 30px;
+    border-bottom: 1px solid rgba(255, 208, 0, 0.2);
+    padding-bottom: 8px;
+}
+
+.type-section:first-of-type {
+    margin-top: 0;
+}
+
+.type-section h3 {
+    font-size: 18px;
+    color: var(--primary-color);
+    font-family: 'Gogga', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.type-section .type-count {
+    font-size: 14px;
+    color: var(--light-text);
+    margin-left: 10px;
+}
+
 /* Custom Scrollbar for Assets Grid */
 .assets-grid::-webkit-scrollbar {
     width: 10px;

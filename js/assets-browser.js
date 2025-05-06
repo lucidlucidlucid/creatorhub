@@ -269,8 +269,52 @@ document.addEventListener('DOMContentLoaded', () => {
                 categoryAssets.forEach(asset => createAssetItem(asset));
             });
         } else {
-            // Display assets of the selected category
-            assetsToDisplay.forEach(asset => createAssetItem(asset));
+            // When a specific category is selected, organize by file types
+            // Type labels for display
+            const typeLabels = {
+                image: 'Images',
+                video: 'Videos',
+                model: '3D Models',
+                zip: 'Archives',
+                other: 'Other Files'
+            };
+            
+            // Group assets by type within the selected category
+            const assetsByType = {
+                image: assetsToDisplay.filter(asset => asset.type === 'image'),
+                video: assetsToDisplay.filter(asset => asset.type === 'video'),
+                model: assetsToDisplay.filter(asset => asset.type === 'model'),
+                zip: assetsToDisplay.filter(asset => asset.type === 'zip'),
+                other: assetsToDisplay.filter(asset => !['image', 'video', 'model', 'zip'].includes(asset.type))
+            };
+            
+            // Get selected category name for display
+            const categoryName = activeCategory === 'root' ? 'Uncategorized' : formatCategoryName(activeCategory);
+            
+            // Add a header for the category
+            const categoryHeader = document.createElement('div');
+            categoryHeader.className = 'category-header';
+            categoryHeader.innerHTML = `<h1>${categoryName}</h1>`;
+            assetsGrid.appendChild(categoryHeader);
+            
+            // Display each type section
+            Object.keys(assetsByType).forEach(type => {
+                const typeAssets = assetsByType[type];
+                
+                // Skip empty types
+                if (typeAssets.length === 0) return;
+                
+                // Add type section header
+                const typeSection = document.createElement('div');
+                typeSection.className = 'type-section';
+                typeSection.innerHTML = `
+                    <h3>${typeLabels[type]} <span class="type-count">(${typeAssets.length})</span></h3>
+                `;
+                assetsGrid.appendChild(typeSection);
+                
+                // Display assets for this type
+                typeAssets.forEach(asset => createAssetItem(asset));
+            });
         }
     }
     
