@@ -342,8 +342,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="video-placeholder" data-path="${asset.proxyPath}" data-name="${asset.name}">
                     <i class="fas fa-video"></i>
                 </div>
-                <div class="video-play-button" data-path="${asset.proxyPath}" data-name="${asset.name}">
-                    <i class="fas fa-play"></i>
+                <div class="video-info-overlay">
+                    <span class="video-label">${asset.name.split('.').pop().toUpperCase()}</span>
                 </div>
             </div>`;
         } else if (asset.type === 'model') {
@@ -384,142 +384,89 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Add video play button event listener if it's a video
         if (asset.type === 'video') {
-            const playBtn = assetItem.querySelector('.video-play-button');
-            playBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                playVideo(asset, assetItem);
-            });
-            
             // Generate thumbnail from first frame
             generateVideoThumbnail(asset, assetItem);
         }
     }
     
-    function playVideo(asset, assetItem) {
-        const videoPreview = assetItem.querySelector('.video-preview');
-        const existingVideo = videoPreview.querySelector('video');
-        
-        // If video is already created, toggle play/pause
-        if (existingVideo) {
-            if (existingVideo.paused) {
-                existingVideo.play();
-                assetItem.querySelector('.video-play-button i').className = 'fas fa-pause';
-            } else {
-                existingVideo.pause();
-                assetItem.querySelector('.video-play-button i').className = 'fas fa-play';
-            }
-            return;
-        }
-        
-        // Otherwise create a new video element
-        const placeholder = videoPreview.querySelector('.video-placeholder');
-        const playButton = videoPreview.querySelector('.video-play-button');
-        
-        // Hide the placeholder
-        placeholder.style.display = 'none';
-        
-        // Create the video element
-        const video = document.createElement('video');
-        video.src = asset.proxyPath;
-        video.className = 'video-element';
-        video.setAttribute('playsinline', '');
-        video.setAttribute('muted', '');
-        video.setAttribute('controls', '');
-        video.setAttribute('controlsList', 'nodownload');
-        
-        // Update the play button icon
-        playButton.querySelector('i').className = 'fas fa-pause';
-        
-        // Add video to the preview
-        videoPreview.insertBefore(video, playButton);
-        
-        // When video ends, show placeholder again and reset play button
-        video.addEventListener('ended', () => {
-            placeholder.style.display = 'flex';
-            playButton.querySelector('i').className = 'fas fa-play';
-        });
-        
-        // When video is paused, update the play button
-        video.addEventListener('pause', () => {
-            playButton.querySelector('i').className = 'fas fa-play';
-        });
-        
-        // When video is playing, update the play button
-        video.addEventListener('play', () => {
-            playButton.querySelector('i').className = 'fas fa-pause';
-        });
-        
-        // Error handling for video playback
-        video.addEventListener('error', (e) => {
-            console.error('Error playing video:', e);
-            // Display error message inside video container
-            videoPreview.insertAdjacentHTML('beforeend', 
-                `<div class="video-error">
-                    <p>Unable to play video</p>
-                    <p>Try downloading instead</p>
-                </div>`
-            );
-            playButton.style.display = 'none';
-        });
-        
-        // Start playing
-        video.play().catch(e => {
-            console.error('Error autostarting video:', e);
-            // Autoplay failed, just show the controls
-            video.setAttribute('controls', 'true');
-        });
-    }
-    
-    // Function to generate video thumbnails
+    // Function to generate video thumbnails - rewritten to work better with Cloudflare
     function generateVideoThumbnail(asset, assetItem) {
         // Create a temporary video element
         const tempVideo = document.createElement('video');
         
         // Try to allow cross-origin
         tempVideo.crossOrigin = 'anonymous';
-        tempVideo.src = asset.proxyPath;
+        
+        // Add a logger to help debugging
+        console.log(`Attempting to generate thumbnail for: ${asset.name}`);
+        
+        // Create a fallback in case thumbnail generation fails
+        const placeholder = assetItem.querySelector('.video-placeholder');
+        const setFallbackImage = () => {
+            console.log(`Using fallback thumbnail for: ${asset.name}`);
+            placeholder.innerHTML = '<i class="fas fa-video"></i>';
+            placeholder.style.background = 'none';
+        };
+        
+        // Set up media error handling before setting src
+        tempVideo.addEventListener('error', function(e) {
+            console.error(`Video error for ${asset.name}:`, e);
+            setFallbackImage();
+        });
+        
+        // Try using a direct iframe URL for GitHub files to bypass CORS
+        // This approach can sometimes work better than proxies
+        let videoUrl = asset.proxyPath;
+        
+        // Set video properties
         tempVideo.muted = true;
         tempVideo.preload = "metadata";
+        tempVideo.playsInline = true;
+        
+        // Set the src after setting up event handlers
+        tempVideo.src = videoUrl;
         
         // Set a timeout to handle stalled loading
         const thumbnailTimeout = setTimeout(() => {
-            console.log('Thumbnail generation timed out');
-            // If timeout occurs, just keep the default icon
+            console.log(`Thumbnail generation timed out for: ${asset.name}`);
+            setFallbackImage();
             tempVideo.src = '';
             tempVideo.load();
-        }, 3000); // 3 second timeout
+        }, 5000); // 5 second timeout
         
         // Once metadata is loaded, seek to the first frame
         tempVideo.addEventListener('loadedmetadata', function() {
+            console.log(`Metadata loaded for: ${asset.name}`);
             // Set video to first frame (0.1 seconds to ensure we get a frame)
             tempVideo.currentTime = 0.1;
         });
         
         // Once the video has seeked to the specified time
         tempVideo.addEventListener('seeked', function() {
+            console.log(`Successfully seeked to frame for: ${asset.name}`);
             clearTimeout(thumbnailTimeout);
             
             // Create a canvas and draw the video frame
             const canvas = document.createElement('canvas');
-            canvas.width = tempVideo.videoWidth;
-            canvas.height = tempVideo.videoHeight;
-            const ctx = canvas.getContext('2d');
+            canvas.width = tempVideo.videoWidth || 320;
+            canvas.height = tempVideo.videoHeight || 240;
             
             try {
+                const ctx = canvas.getContext('2d');
                 ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
                 
                 // Convert canvas to image and set it as the thumbnail
                 const thumbnail = canvas.toDataURL('image/jpeg');
-                const placeholder = assetItem.querySelector('.video-placeholder');
                 
                 // Replace icon with thumbnail image
                 placeholder.innerHTML = '';
                 placeholder.style.background = `url(${thumbnail}) center center / contain no-repeat`;
                 placeholder.style.width = '100%';
                 placeholder.style.height = '100%';
+                console.log(`Successfully created thumbnail for: ${asset.name}`);
             } catch (e) {
-                console.error('Error generating thumbnail:', e);
-                // Keep the icon if thumbnail generation fails - could be a CORS issue
+                console.error(`Error generating thumbnail for ${asset.name}:`, e);
+                setFallbackImage();
             }
             
             // Clean up temporary video element
@@ -527,13 +474,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tempVideo.load();
         });
         
-        // Handle errors
-        tempVideo.addEventListener('error', function(e) {
-            clearTimeout(thumbnailTimeout);
-            console.error('Error loading video for thumbnail:', e);
-        });
-        
-        // Load the video
+        // Start loading the video to trigger events
         tempVideo.load();
     }
     
