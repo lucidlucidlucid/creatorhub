@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Show error message
                 assetsGrid.insertAdjacentHTML('beforebegin', 
                     `<div class="error-message">
-                        Could not load assets from GitHub. Showing demo assets instead.
+                        Website under maintenance. Sorry for inconvenience. Lucid is working on a fix!
                     </div>`
                 );
                 

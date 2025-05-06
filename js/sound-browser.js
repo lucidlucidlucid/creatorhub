@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Show error message
                 soundList.insertAdjacentHTML('beforebegin', 
                     `<div class="error-message">
-                        Could not load sounds from GitHub. Showing demo sounds instead.
+                        Website under maintenance. Sorry for inconvenience. Lucid is working on a fix!
                     </div>`
                 );
                 
