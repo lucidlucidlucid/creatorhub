@@ -27,14 +27,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let isInitialized = false; // Track initialization state
     
     // Hardcoded repository URL - this is the correct API URL format
-    const apiUrl = 'https://api.github.com/repos/lucidlucidlucid/creatorhub/contents/lucidsgtaghub';
+    const apiUrl = 'https://api.github.com/repos/lucidlucidlucid/creatorhub/contents/lucidsgtaghub?ref=main';
     
     // Show loading indicator immediately
     loadingIndicator.style.display = 'flex';
     
     // Initialize only once
     if (!isInitialized) {
-        fetchSounds();
+    fetchSounds();
         isInitialized = true;
     }
 
@@ -481,7 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Clean up
         setTimeout(() => {
-            document.body.removeChild(a);
+        document.body.removeChild(a);
         }, 100);
     }
 

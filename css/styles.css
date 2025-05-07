@@ -2494,8 +2494,8 @@ footer {
 .patreon-popup {
     position: fixed;
     top: 0;
-    left: 0;
-    right: 0;
+        left: 0;
+        right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(5px);
@@ -2503,7 +2503,7 @@ footer {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+        z-index: 1000;
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease;
@@ -2524,9 +2524,9 @@ footer {
     text-align: center;
     transform: translateY(20px);
     transition: transform 0.3s ease;
-    border-radius: 0;
-}
-
+        border-radius: 0;
+    }
+    
 .patreon-popup.active .patreon-popup-content {
     transform: translateY(0);
 }
@@ -2539,8 +2539,8 @@ footer {
     font-size: 40px;
     color: #FF424D;
     margin-bottom: 15px;
-}
-
+    }
+    
 .patreon-popup-header h3 {
     color: var(--primary-color);
     font-size: 24px;
@@ -2554,8 +2554,8 @@ footer {
     color: var(--light-text);
     margin-bottom: 25px;
     line-height: 1.5;
-}
-
+    }
+    
 .patreon-popup-actions {
     display: flex;
     gap: 15px;

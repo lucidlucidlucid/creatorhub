@@ -158,9 +158,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // If no cache or cache expired, fetch from GitHub
-        fetch(apiUrl)
+        fetch(apiUrl, {
+            headers: {
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        })
             .then(response => {
                 if (!response.ok) {
+                    console.error('GitHub API Error:', response.status, response.statusText);
                     // Handle different HTTP error codes
                     if (response.status === 403) {
                         throw new Error('RATE_LIMIT');
@@ -238,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     })
                     .catch(error => {
                         console.error('Error processing folders:', error);
-                        loadingIndicator.style.display = 'none';
+                loadingIndicator.style.display = 'none';
                         throw error; // Re-throw to be caught by the main catch block
                     });
             })
@@ -249,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (cachedData) {
                     const data = JSON.parse(cachedData);
                     processFiles(data, 'root');
-                    setupCategoryTabs();
+                setupCategoryTabs();
                     displayAssets(assets);
                     loadingIndicator.style.display = 'none';
                     return;
@@ -685,7 +690,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Clean up
         setTimeout(() => {
-            document.body.removeChild(a);
+        document.body.removeChild(a);
         }, 100);
     }
 
