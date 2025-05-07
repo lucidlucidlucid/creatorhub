@@ -27,14 +27,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let isInitialized = false; // Track initialization state
     
     // Hardcoded repository URL - this is the correct API URL format
-    const apiUrl = 'https://api.github.com/repos/lucidlucidlucid/creatorhub/contents/lucidsgtaghub?ref=main';
+    const apiUrl = 'https://api.github.com/repos/lucidlucidlucid/creatorhub/contents/lucidsgtaghub';
     
     // Show loading indicator immediately
     loadingIndicator.style.display = 'flex';
     
     // Initialize only once
     if (!isInitialized) {
-    fetchSounds();
+        fetchSounds();
         isInitialized = true;
     }
 
@@ -90,33 +90,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function fetchSounds() {
-        // Check cache first
-        const cachedData = localStorage.getItem('soundListCache');
-        const cacheTime = localStorage.getItem('soundListCacheTime');
-        const now = Date.now();
-        
-        // Use cache if it exists and is less than 4 hours old
-        if (cachedData && cacheTime && (now - parseInt(cacheTime)) < 14400000) {
-            const sounds = JSON.parse(cachedData);
-            displaySounds(sounds);
-            loadingIndicator.style.display = 'none';
-            return;
-        }
-
-        // If no cache or cache expired, fetch from GitHub
+        // Fetch the repository contents using GitHub API
         fetch(apiUrl)
             .then(response => {
                 if (!response.ok) {
-                    // Handle different HTTP error codes
-                    if (response.status === 403) {
-                        throw new Error('RATE_LIMIT');
-                    } else if (response.status === 404) {
-                        throw new Error('NOT_FOUND');
-                    } else if (response.status >= 500) {
-                        throw new Error('SERVER_ERROR');
-                    } else {
-                        throw new Error('MAINTENANCE');
-                    }
+                    throw new Error('Network response was not ok');
                 }
                 return response.json();
             })
@@ -131,12 +109,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     date: new Date().toISOString(),
                     size: file.size || 0,
                     isPlaying: false,
-                    isLoaded: false
+                    isLoaded: false // Track if sound is loaded
                 }));
-                
-                // Cache the results
-                localStorage.setItem('soundListCache', JSON.stringify(sounds));
-                localStorage.setItem('soundListCacheTime', now.toString());
                 
                 if (sounds.length === 0) {
                     soundList.innerHTML = '<div class="no-results">No sound files found in the repository.</div>';
@@ -148,103 +122,26 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => {
                 console.error('Error fetching sounds:', error);
                 
-                // Try to use cache even if expired when fetch fails
-                if (cachedData) {
-                    const sounds = JSON.parse(cachedData);
-                    displaySounds(sounds);
-                    loadingIndicator.style.display = 'none';
-                    return;
-                }
+                // Fall back to demo data if GitHub API fails
+                const demoSounds = [
+                    { name: 'ambient_forest.mp3', path: '#', date: '2023-09-15T10:30:00Z', size: 1024000, isPlaying: false },
+                    { name: 'gorilla_grunt.mp3', path: '#', date: '2023-09-10T14:22:00Z', size: 256000, isPlaying: false },
+                    { name: 'jump_effect.mp3', path: '#', date: '2023-09-05T09:15:00Z', size: 128000, isPlaying: false },
+                    { name: 'tree_rustle.mp3', path: '#', date: '2023-09-01T16:45:00Z', size: 384000, isPlaying: false },
+                    { name: 'tag_sound.mp3', path: '#', date: '2023-08-25T11:20:00Z', size: 192000, isPlaying: false },
+                    { name: 'victory_cheer.mp3', path: '#', date: '2023-08-20T08:10:00Z', size: 512000, isPlaying: false },
+                    { name: 'menu_click.mp3', path: '#', date: '2023-08-10T15:50:00Z', size: 64000, isPlaying: false },
+                ];
                 
-                // Show appropriate error message based on error type
-                let errorMessage = '';
-                switch(error.message) {
-                    case 'RATE_LIMIT':
-                        errorMessage = `
-                            <div class="error-message rate-limit">
-                                <div class="error-content">
-                                    <h3>Rate Limit Reached</h3>
-                                    <p>We've temporarily reached our API limit. This is a limitation of using GitHub's free API service.</p>
-                                    <p>To help us provide a better experience and remove these limitations, consider supporting us:</p>
-                                    <div class="patreon-support">
-                                        <a href="https://www.patreon.com/creatorhub" target="_blank" class="patreon-button">
-                                            <i class="fab fa-patreon"></i>
-                                            <span>Support on Patreon</span>
-                                        </a>
-                                    </div>
-                                    <p class="error-note">The limit will reset automatically in a few minutes.</p>
-                                </div>
-                            </div>`;
-                        break;
-                    case 'SERVER_ERROR':
-                        errorMessage = `
-                            <div class="error-message server-error">
-                                <div class="error-content">
-                                    <h3>Server Error</h3>
-                                    <p>We're experiencing some technical difficulties with GitHub's servers.</p>
-                                    <p>To help us implement a more reliable solution, consider supporting us:</p>
-                                    <div class="patreon-support">
-                                        <a href="https://www.patreon.com/creatorhub" target="_blank" class="patreon-button">
-                                            <i class="fab fa-patreon"></i>
-                                            <span>Support on Patreon</span>
-                                        </a>
-                                    </div>
-                                    <p class="error-note">We'll keep trying to reconnect automatically.</p>
-                                </div>
-                            </div>`;
-                        break;
-                    case 'NOT_FOUND':
-                        errorMessage = `
-                            <div class="error-message not-found">
-                                <div class="error-content">
-                                    <h3>Repository Not Found</h3>
-                                    <p>The sound repository could not be found at this time.</p>
-                                    <p>To help us maintain and improve the service, consider supporting us:</p>
-                                    <div class="patreon-support">
-                                        <a href="https://www.patreon.com/creatorhub" target="_blank" class="patreon-button">
-                                            <i class="fab fa-patreon"></i>
-                                            <span>Support on Patreon</span>
-                                        </a>
-                                    </div>
-                                    <p class="error-note">Please check back later or contact support.</p>
-                                </div>
-                            </div>`;
-                        break;
-                    default:
-                        errorMessage = `
-                            <div class="error-message maintenance">
-                                <div class="error-content">
-                                    <h3>Website Under Maintenance</h3>
-                                    <p>We're currently performing some updates to improve your experience.</p>
-                                    <p>To help us continue improving CreatorHub, consider supporting us:</p>
-                                    <div class="patreon-support">
-                                        <a href="https://www.patreon.com/creatorhub" target="_blank" class="patreon-button">
-                                            <i class="fab fa-patreon"></i>
-                                            <span>Support on Patreon</span>
-                                        </a>
-                                    </div>
-                                    <p class="error-note">Please try again in a few minutes.</p>
-                                </div>
-                            </div>`;
-                }
+                sounds = demoSounds;
+                displaySounds(sounds);
                 
                 // Show error message
-                soundList.insertAdjacentHTML('beforebegin', errorMessage);
-                
-                // Show empty state instead of demo data
-                soundList.innerHTML = `
-                    <div class="no-results">
-                        <div class="error-content">
-                            <p>Unable to load sounds at this time.</p>
-                            <div class="patreon-support">
-                                <a href="https://www.patreon.com/creatorhub" target="_blank" class="patreon-button">
-                                    <i class="fab fa-patreon"></i>
-                                    <span>Support on Patreon</span>
-                                </a>
-                            </div>
-                            <p class="error-note">Please try again later or check our Patreon for updates.</p>
-                        </div>
-                    </div>`;
+                soundList.insertAdjacentHTML('beforebegin', 
+                    `<div class="error-message">
+                        Website under maintenance. Sorry for inconvenience. Lucid is working on a fix!
+                    </div>`
+                );
                 
                 loadingIndicator.style.display = 'none';
             });
@@ -469,20 +366,44 @@ document.addEventListener('DOMContentLoaded', () => {
             showPatreonPopup();
         }
 
-        // Create a temporary link element
-        const a = document.createElement('a');
-        a.href = sound.path;
-        a.download = sound.name; // This forces download instead of opening in browser
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        
-        // Trigger the download
-        a.click();
-        
-        // Clean up
-        setTimeout(() => {
-        document.body.removeChild(a);
-        }, 100);
+        // Clean the filename
+        let cleanFileName = sound.name;
+        if (cleanFileName.includes('_')) {
+            const lastUnderscore = cleanFileName.lastIndexOf('_');
+            if (lastUnderscore > 0) {
+                const possiblePrefix = cleanFileName.substring(0, lastUnderscore + 1);
+                if (possiblePrefix.includes('sound') || possiblePrefix.includes('stuff')) {
+                    cleanFileName = cleanFileName.substring(lastUnderscore + 1);
+                }
+            }
+        }
+
+        // Fetch the file and create a blob URL
+        fetch(sound.path)
+            .then(response => response.blob())
+            .then(blob => {
+                const blobUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = blobUrl;
+                a.download = cleanFileName;
+                a.setAttribute('download', cleanFileName);
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(blobUrl);
+                document.body.removeChild(a);
+            })
+            .catch(error => {
+                console.error('Error downloading file:', error);
+                // Fallback to direct download if blob method fails
+                const a = document.createElement('a');
+                a.href = sound.path;
+                a.download = cleanFileName;
+                a.setAttribute('download', cleanFileName);
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            });
     }
 
     // Search and filtering

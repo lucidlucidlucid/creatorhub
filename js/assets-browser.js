@@ -142,48 +142,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function fetchFolders() {
-        // Check cache first
-        const cachedData = localStorage.getItem('assetsListCache');
-        const cacheTime = localStorage.getItem('assetsListCacheTime');
-        const now = Date.now();
-        
-        // Use cache if it exists and is less than 4 hours old
-        if (cachedData && cacheTime && (now - parseInt(cacheTime)) < 14400000) {
-            const data = JSON.parse(cachedData);
-            processFiles(data, 'root');
-            setupCategoryTabs();
-            displayAssets(assets);
-            loadingIndicator.style.display = 'none';
-            return;
-        }
-
-        // If no cache or cache expired, fetch from GitHub
-        fetch(apiUrl, {
-            headers: {
-                'Accept': 'application/vnd.github.v3+json'
-            }
-        })
+        // Fetch the repository contents using GitHub API
+        fetch(apiUrl)
             .then(response => {
                 if (!response.ok) {
-                    console.error('GitHub API Error:', response.status, response.statusText);
-                    // Handle different HTTP error codes
-                    if (response.status === 403) {
-                        throw new Error('RATE_LIMIT');
-                    } else if (response.status === 404) {
-                        throw new Error('NOT_FOUND');
-                    } else if (response.status >= 500) {
-                        throw new Error('SERVER_ERROR');
-                    } else {
-                        throw new Error('MAINTENANCE');
-                    }
+                    throw new Error('Network response was not ok');
                 }
                 return response.json();
             })
             .then(data => {
-                // Cache the results
-                localStorage.setItem('assetsListCache', JSON.stringify(data));
-                localStorage.setItem('assetsListCacheTime', now.toString());
-                
                 // Separate folders and files
                 const folders = data.filter(item => item.type === 'dir');
                 const rootFiles = data.filter(item => item.type === 'file');
@@ -205,27 +172,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Create a promise for each folder to fetch its contents
                 const folderPromises = folders.map(folder => 
                     fetch(folder.url)
-                        .then(response => {
-                            if (!response.ok) {
-                                if (response.status === 403) {
-                                    throw new Error('RATE_LIMIT');
-                                } else if (response.status === 404) {
-                                    throw new Error('NOT_FOUND');
-                                } else if (response.status >= 500) {
-                                    throw new Error('SERVER_ERROR');
-                                } else {
-                                    throw new Error('MAINTENANCE');
-                                }
-                            }
-                            return response.json();
-                        })
+                        .then(response => response.json())
                         .then(folderData => {
                             // Process files in this folder
                             processFiles(folderData, folder.name);
                         })
                         .catch(error => {
                             console.error(`Error fetching contents of folder ${folder.name}:`, error);
-                            throw error; // Re-throw to be caught by the main catch block
                         })
                 );
                 
@@ -244,111 +197,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     .catch(error => {
                         console.error('Error processing folders:', error);
                 loadingIndicator.style.display = 'none';
-                        throw error; // Re-throw to be caught by the main catch block
                     });
             })
             .catch(error => {
                 console.error('Error fetching repository contents:', error);
                 
-                // Try to use cache even if expired when fetch fails
-                if (cachedData) {
-                    const data = JSON.parse(cachedData);
-                    processFiles(data, 'root');
-                setupCategoryTabs();
-                    displayAssets(assets);
-                    loadingIndicator.style.display = 'none';
-                    return;
-                }
+                // Fall back to demo data if GitHub API fails
+                useDemoData();
                 
-                // Show appropriate error message based on error type
-                let errorMessage = '';
-                switch(error.message) {
-                    case 'RATE_LIMIT':
-                        errorMessage = `
-                            <div class="error-message rate-limit">
-                                <div class="error-content">
-                                    <h3>Rate Limit Reached</h3>
-                                    <p>We've temporarily reached our API limit. This is a limitation of using GitHub's free API service.</p>
-                                    <p>To help us provide a better experience and remove these limitations, consider supporting us:</p>
-                                    <div class="patreon-support">
-                                        <a href="https://www.patreon.com/creatorhub" target="_blank" class="patreon-button">
-                                            <i class="fab fa-patreon"></i>
-                                            <span>Support on Patreon</span>
-                                        </a>
-                                    </div>
-                                    <p class="error-note">The limit will reset automatically in a few minutes.</p>
-                                </div>
-                            </div>`;
-                        break;
-                    case 'SERVER_ERROR':
-                        errorMessage = `
-                            <div class="error-message server-error">
-                                <div class="error-content">
-                                    <h3>Server Error</h3>
-                                    <p>We're experiencing some technical difficulties with GitHub's servers.</p>
-                                    <p>To help us implement a more reliable solution, consider supporting us:</p>
-                                    <div class="patreon-support">
-                                        <a href="https://www.patreon.com/creatorhub" target="_blank" class="patreon-button">
-                                            <i class="fab fa-patreon"></i>
-                                            <span>Support on Patreon</span>
-                                        </a>
-                                    </div>
-                                    <p class="error-note">We'll keep trying to reconnect automatically.</p>
-                                </div>
-                            </div>`;
-                        break;
-                    case 'NOT_FOUND':
-                        errorMessage = `
-                            <div class="error-message not-found">
-                                <div class="error-content">
-                                    <h3>Repository Not Found</h3>
-                                    <p>The assets repository could not be found at this time.</p>
-                                    <p>To help us maintain and improve the service, consider supporting us:</p>
-                                    <div class="patreon-support">
-                                        <a href="https://www.patreon.com/creatorhub" target="_blank" class="patreon-button">
-                                            <i class="fab fa-patreon"></i>
-                                            <span>Support on Patreon</span>
-                                        </a>
-                                    </div>
-                                    <p class="error-note">Please check back later or contact support.</p>
-                                </div>
-                            </div>`;
-                        break;
-                    default:
-                        errorMessage = `
-                            <div class="error-message maintenance">
-                                <div class="error-content">
-                                    <h3>Website Under Maintenance</h3>
-                                    <p>We're currently performing some updates to improve your experience.</p>
-                                    <p>To help us continue improving CreatorHub, consider supporting us:</p>
-                                    <div class="patreon-support">
-                                        <a href="https://www.patreon.com/creatorhub" target="_blank" class="patreon-button">
-                                            <i class="fab fa-patreon"></i>
-                                            <span>Support on Patreon</span>
-                                        </a>
-                                    </div>
-                                    <p class="error-note">Please try again in a few minutes.</p>
-                                </div>
-                            </div>`;
-                }
+                // Set up tabs with demo categories
+                setupCategoryTabs();
+                
+                // Display demo assets
+                displayAssets(assets);
                 
                 // Show error message
-                assetsGrid.insertAdjacentHTML('beforebegin', errorMessage);
-                
-                // Show empty state instead of demo data
-                assetsGrid.innerHTML = `
-                    <div class="no-results">
-                        <div class="error-content">
-                            <p>Unable to load assets at this time.</p>
-                            <div class="patreon-support">
-                                <a href="https://www.patreon.com/creatorhub" target="_blank" class="patreon-button">
-                                    <i class="fab fa-patreon"></i>
-                                    <span>Support on Patreon</span>
-                                </a>
-                            </div>
-                            <p class="error-note">Please try again later or check our Patreon for updates.</p>
-                        </div>
-                    </div>`;
+                assetsGrid.insertAdjacentHTML('beforebegin', 
+                    `<div class="error-message">
+                        Website under maintenance. Sorry for inconvenience. Lucid is working on a fix!
+                    </div>`
+                );
                 
                 loadingIndicator.style.display = 'none';
             });
@@ -678,20 +546,32 @@ document.addEventListener('DOMContentLoaded', () => {
             showPatreonPopup();
         }
 
-        // Create a temporary link element
-        const a = document.createElement('a');
-        a.href = asset.path;
-        a.download = asset.name; // This forces download instead of opening in browser
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        
-        // Trigger the download
-        a.click();
-        
-        // Clean up
-        setTimeout(() => {
-        document.body.removeChild(a);
-        }, 100);
+        // Fetch the file and create a blob URL
+        fetch(asset.path)
+            .then(response => response.blob())
+            .then(blob => {
+                const blobUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = blobUrl;
+                a.download = asset.name;
+                a.setAttribute('download', asset.name);
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(blobUrl);
+                document.body.removeChild(a);
+            })
+            .catch(error => {
+                console.error('Error downloading file:', error);
+                // Fallback to direct download if blob method fails
+                const a = document.createElement('a');
+                a.href = asset.path;
+                a.download = asset.name;
+                a.setAttribute('download', asset.name);
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            });
     }
 
     // Search and filtering
