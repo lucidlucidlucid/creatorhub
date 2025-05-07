@@ -378,32 +378,72 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Fetch the file and create a blob URL
-        fetch(sound.path)
-            .then(response => response.blob())
-            .then(blob => {
-                const blobUrl = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = blobUrl;
-                a.download = cleanFileName;
-                a.setAttribute('download', cleanFileName);
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(blobUrl);
-                document.body.removeChild(a);
-            })
-            .catch(error => {
-                console.error('Error downloading file:', error);
-                // Fallback to direct download if blob method fails
-                const a = document.createElement('a');
-                a.href = sound.path;
-                a.download = cleanFileName;
-                a.setAttribute('download', cleanFileName);
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            });
+        // Show loading state
+        const downloadBtn = document.querySelector(`.download-btn[data-index="${sound.index}"]`);
+        if (downloadBtn) {
+            const originalContent = downloadBtn.innerHTML;
+            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            downloadBtn.disabled = true;
+        }
+
+        // Fetch the file with proper headers
+        fetch(sound.path, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/octet-stream'
+            }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.blob();
+        })
+        .then(blob => {
+            // Create blob URL
+            const blobUrl = window.URL.createObjectURL(blob);
+            
+            // Create download link
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = blobUrl;
+            a.download = cleanFileName;
+            
+            // Add additional attributes for mobile
+            a.setAttribute('download', cleanFileName);
+            a.setAttribute('target', '_blank');
+            a.setAttribute('rel', 'noopener noreferrer');
+            
+            // Append to body and trigger download
+            document.body.appendChild(a);
+            a.click();
+            
+            // Clean up
+            window.URL.revokeObjectURL(blobUrl);
+            document.body.removeChild(a);
+            
+            // Reset button state
+            if (downloadBtn) {
+                downloadBtn.innerHTML = '<i class="fas fa-download"></i>';
+                downloadBtn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error downloading file:', error);
+            
+            // Fallback to direct download
+            const a = document.createElement('a');
+            a.href = sound.path;
+            a.download = cleanFileName;
+            a.setAttribute('download', cleanFileName);
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            // Reset button state
+            if (downloadBtn) {
+                downloadBtn.innerHTML = '<i class="fas fa-download"></i>';
+                downloadBtn.disabled = false;
+            }
+        });
     }
 
     // Search and filtering
