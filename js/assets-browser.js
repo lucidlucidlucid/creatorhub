@@ -39,6 +39,57 @@ document.addEventListener('DOMContentLoaded', () => {
     // Show loading indicator immediately
     loadingIndicator.style.display = 'flex';
     
+    // Add download counter
+    let downloadCount = 0;
+    let lastDownloadTime = 0;
+    const DOWNLOAD_RESET_TIME = 3600000; // 1 hour in milliseconds
+    let targetDownloadCount = Math.floor(Math.random() * 3) + 3; // Random number between 3-5
+    
+    // Create Patreon popup element
+    const patreonPopup = document.createElement('div');
+    patreonPopup.className = 'patreon-popup';
+    patreonPopup.innerHTML = `
+        <div class="patreon-popup-content">
+            <div class="patreon-popup-header">
+                <i class="fab fa-patreon"></i>
+                <h3>Enjoying CreatorHub?</h3>
+            </div>
+            <p>Consider supporting us on Patreon to help us create more amazing content!</p>
+            <div class="patreon-popup-actions">
+                <a href="https://www.patreon.com/creatorhub" target="_blank" class="patreon-button">
+                    <i class="fab fa-patreon"></i> Support Us
+                </a>
+                <button class="patreon-close">Maybe Later</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(patreonPopup);
+
+    // Function to show Patreon popup
+    function showPatreonPopup() {
+        patreonPopup.classList.add('active');
+        // Auto-hide after 10 seconds
+        setTimeout(() => {
+            patreonPopup.classList.remove('active');
+        }, 10000);
+        
+        // Reset counter and set new random target
+        downloadCount = 0;
+        targetDownloadCount = Math.floor(Math.random() * 3) + 3;
+    }
+
+    // Close popup when clicking close button
+    patreonPopup.querySelector('.patreon-close').addEventListener('click', () => {
+        patreonPopup.classList.remove('active');
+    });
+
+    // Close popup when clicking outside
+    patreonPopup.addEventListener('click', (e) => {
+        if (e.target === patreonPopup) {
+            patreonPopup.classList.remove('active');
+        }
+    });
+
     // Fetch assets from the repository
     fetchFolders();
 
@@ -479,8 +530,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function downloadAsset(asset) {
+        const currentTime = Date.now();
+        
+        // Reset counter if more than an hour has passed
+        if (currentTime - lastDownloadTime > DOWNLOAD_RESET_TIME) {
+            downloadCount = 0;
+            targetDownloadCount = Math.floor(Math.random() * 3) + 3;
+        }
+        
+        downloadCount++;
+        lastDownloadTime = currentTime;
+        
+        // Show Patreon popup when reaching the random target
+        if (downloadCount === targetDownloadCount) {
+            showPatreonPopup();
+        }
+
         const a = document.createElement('a');
-        a.href = asset.path; // Use direct path for download, not proxy
+        a.href = asset.path;
         a.download = asset.name;
         document.body.appendChild(a);
         a.click();

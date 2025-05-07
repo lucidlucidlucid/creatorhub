@@ -38,6 +38,57 @@ document.addEventListener('DOMContentLoaded', () => {
         isInitialized = true;
     }
 
+    // Add download counter
+    let downloadCount = 0;
+    let lastDownloadTime = 0;
+    const DOWNLOAD_RESET_TIME = 3600000; // 1 hour in milliseconds
+    let targetDownloadCount = Math.floor(Math.random() * 3) + 3; // Random number between 3-5
+    
+    // Create Patreon popup element
+    const patreonPopup = document.createElement('div');
+    patreonPopup.className = 'patreon-popup';
+    patreonPopup.innerHTML = `
+        <div class="patreon-popup-content">
+            <div class="patreon-popup-header">
+                <i class="fab fa-patreon"></i>
+                <h3>Enjoying CreatorHub?</h3>
+            </div>
+            <p>Consider supporting us on Patreon to help us create more amazing content!</p>
+            <div class="patreon-popup-actions">
+                <a href="https://www.patreon.com/creatorhub" target="_blank" class="patreon-button">
+                    <i class="fab fa-patreon"></i> Support Us
+                </a>
+                <button class="patreon-close">Maybe Later</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(patreonPopup);
+
+    // Function to show Patreon popup
+    function showPatreonPopup() {
+        patreonPopup.classList.add('active');
+        // Auto-hide after 10 seconds
+        setTimeout(() => {
+            patreonPopup.classList.remove('active');
+        }, 10000);
+        
+        // Reset counter and set new random target
+        downloadCount = 0;
+        targetDownloadCount = Math.floor(Math.random() * 3) + 3;
+    }
+
+    // Close popup when clicking close button
+    patreonPopup.querySelector('.patreon-close').addEventListener('click', () => {
+        patreonPopup.classList.remove('active');
+    });
+
+    // Close popup when clicking outside
+    patreonPopup.addEventListener('click', (e) => {
+        if (e.target === patreonPopup) {
+            patreonPopup.classList.remove('active');
+        }
+    });
+
     function fetchSounds() {
         // Fetch the repository contents using GitHub API
         fetch(apiUrl)
@@ -299,17 +350,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function downloadSound(sound) {
+        const currentTime = Date.now();
+        
+        // Reset counter if more than an hour has passed
+        if (currentTime - lastDownloadTime > DOWNLOAD_RESET_TIME) {
+            downloadCount = 0;
+            targetDownloadCount = Math.floor(Math.random() * 3) + 3;
+        }
+        
+        downloadCount++;
+        lastDownloadTime = currentTime;
+        
+        // Show Patreon popup when reaching the random target
+        if (downloadCount === targetDownloadCount) {
+            showPatreonPopup();
+        }
+
         const a = document.createElement('a');
         a.href = sound.path;
         
-        // Clean the filename - remove any "soundstuff_" prefix or other prefix patterns
+        // Clean the filename
         let cleanFileName = sound.name;
-        // Remove any prefix pattern like "soundstuff_", "sounds_", etc.
         if (cleanFileName.includes('_')) {
             const lastUnderscore = cleanFileName.lastIndexOf('_');
             if (lastUnderscore > 0) {
                 const possiblePrefix = cleanFileName.substring(0, lastUnderscore + 1);
-                // Only treat it as a prefix if it's not part of the actual filename
                 if (possiblePrefix.includes('sound') || possiblePrefix.includes('stuff')) {
                     cleanFileName = cleanFileName.substring(lastUnderscore + 1);
                 }
@@ -317,7 +382,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         a.download = cleanFileName;
-        
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
