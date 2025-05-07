@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let sounds = [];
     let currentPlayingItem = null;
     let wavesurfers = {}; // Store wavesurfer instances for each sound
+    let isInitialized = false; // Track initialization state
     
     // Hardcoded repository URL - this is the correct API URL format
     const apiUrl = 'https://api.github.com/repos/lucidlucidlucid/creatorhub/contents/lucidsgtaghub';
@@ -31,8 +32,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Show loading indicator immediately
     loadingIndicator.style.display = 'flex';
     
-    // Fetch sounds from the repository
-    fetchSounds();
+    // Initialize only once
+    if (!isInitialized) {
+        fetchSounds();
+        isInitialized = true;
+    }
 
     function fetchSounds() {
         // Fetch the repository contents using GitHub API
@@ -51,9 +55,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }).map(file => ({
                     name: file.name,
                     path: file.download_url,
-                    date: new Date().toISOString(), // GitHub API doesn't provide date in contents API
+                    date: new Date().toISOString(),
                     size: file.size || 0,
-                    isPlaying: false
+                    isPlaying: false,
+                    isLoaded: false // Track if sound is loaded
                 }));
                 
                 if (sounds.length === 0) {
@@ -98,6 +103,23 @@ document.addEventListener('DOMContentLoaded', () => {
             soundList.innerHTML = '<div class="no-results">No sounds match your search.</div>';
             return;
         }
+        
+        // Create intersection observer for lazy loading
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const index = entry.target.dataset.index;
+                    if (!sounds[index].isLoaded) {
+                        createWavesurfer(sounds[index], index);
+                        sounds[index].isLoaded = true;
+                    }
+                }
+            });
+        }, {
+            root: null,
+            rootMargin: '50px',
+            threshold: 0.1
+        });
         
         soundsToDisplay.forEach((sound, index) => {
             const soundItem = document.createElement('div');
@@ -144,9 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             
             soundList.appendChild(soundItem);
-            
-            // Create wavesurfer for this sound
-            createWavesurfer(sound, index);
+            observer.observe(soundItem);
             
             // Add event listeners after the element is added to the DOM
             const playBtn = soundItem.querySelector('.play-btn');
@@ -162,6 +182,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function createWavesurfer(sound, index) {
+        // Clean up existing wavesurfer if it exists
+        if (wavesurfers[index]) {
+            wavesurfers[index].destroy();
+        }
+        
         // Create wavesurfer instance for this sound
         const wavesurfer = WaveSurfer.create({
             container: `#waveform-${index}`,
@@ -172,7 +197,11 @@ document.addEventListener('DOMContentLoaded', () => {
             barRadius: 1,
             barGap: 1,
             height: 50,
-            responsive: true
+            responsive: true,
+            backend: 'MediaElement', // Use MediaElement backend for better mobile support
+            mediaType: 'audio',
+            normalize: true,
+            partialRender: true // Enable partial rendering for better performance
         });
         
         // Store the wavesurfer instance
