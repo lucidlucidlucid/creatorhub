@@ -1,0 +1,136 @@
+@font-face {
+    font-family: main;
+    src: url(fonts/little.ttf);
+}
+
+@font-face {
+    font-family: title;
+    src: url(fonts/Gogga_Thorax.otf);
+}
+
+#container{
+    width: 100%;
+    height: 100%;
+}
+
+body{
+    font-family: main;
+    line-height: 1.5;
+    background-color: #3e5b59;
+    background-image: url('../images/background.jpg');
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center;
+    
+}
+
+.title, .subtitle{
+    font-family: title;
+    color: rgb(221, 226, 165);
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.359);
+
+}
+
+.regular{
+    font-family: main;
+}
+
+.title{
+    text-align: center;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.359);
+    margin-top: 100px;
+    color: rgb(223, 223, 120);
+}
+
+#name{
+    font-size: 60px;
+}
+#subname{
+    font-size: 30px;
+}
+
+#aboutme{
+    border-radius: 6px;
+    margin: auto;
+    width: 70%;
+    height: auto;
+    text-align: center;
+    background-color: rgba(46, 76, 68, 0.445);
+    backdrop-filter: blur(4px);
+    box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.313);
+    padding: 20px;
+    margin-top: 40px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.306);
+}
+#aboutmesub{
+    font-size: 27px;
+
+}
+#aboutmedesc{
+    font-size: 20px;
+    padding-top: 15px;
+    color: rgb(195, 195, 159);
+}
+
+#achieve{
+    display: flex;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    list-style: none;
+    gap: 20px;
+    margin: 0;
+    padding: 0;
+    padding-top: 20px;
+
+
+}
+
+.achieveitem{
+    background-color: rgba(33, 54, 48, 0.589);
+    width: 70px;
+    border-radius: 3px;
+    padding: 5px;
+    margin: 10px;
+    color: rgb(195, 195, 159);
+    font-size: 20px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.499);
+
+}
+
+
+
+#socials{
+    border-radius: 6px;
+    margin: auto;
+    width: 70%;
+    height: auto;
+    text-align: center;
+    background-color: rgba(46, 76, 68, 0.445);
+    backdrop-filter: blur(4px);
+    box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.313);
+    padding: 20px;
+    margin-top: 40px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.306);
+    padding: 20px;
+    margin-bottom: 200px;
+
+}
+
+#wtfm{
+    text-align: center;
+    font-size: 27px;
+}
+
+#links {
+    padding-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+}
+#links a img
+{
+
+    width: 60px; 
+    height: auto;
+}
