@@ -135,3 +135,126 @@ body{
     width: 60px; 
     height: auto;
 }
+
+/* Navigation Bar */
+#mainnav {
+    width: 100%;
+    background: #2d2d2dbe;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+#mainnav ul {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin: 0;
+    padding: 10px 0;
+    list-style: none;
+}
+#mainnav ul li a {
+    color: #b8b8b8;
+    text-decoration: none;
+    font-family: title;
+    font-size: 20px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition: background 0.2s;
+    text-transform: uppercase;
+}
+#mainnav ul li a:hover {
+    background: #513d1457;
+}
+
+#links {
+    padding-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+.social-link img {
+    width: 80px;
+    height: 80px;
+    max-width: 100%;
+    object-fit: contain;
+    transition: transform 0.2s;
+}
+.social-link img:hover {
+    transform: scale(1.1);
+}
+
+@media (max-width: 700px) {
+    #container, #aboutme, #socials, #skills {
+        width: 98% !important;
+        padding: 10px !important;
+    }
+    #name {
+        font-size: 36px;
+    }
+    #subname {
+        font-size: 18px;
+    }
+    .subtitle, #aboutmesub, #skillsub, #wtfm {
+        font-size: 20px !important;
+    }
+    #aboutmedesc, .skillitem, .achieveitem {
+        font-size: 16px !important;
+        padding: 8px 6px;
+    }
+    #achieve, #skillslist {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px !important;
+        align-items: center;
+        justify-items: center;
+    }
+    #links {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 20px;
+        justify-content: center;
+        align-content: center;
+        width: max-content;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .social-link img {
+        width: 70px;
+        height: 70px;
+    }
+    #mainnav ul {
+        gap: 10px;
+    }
+    #mainnav ul li a {
+        font-size: 16px;
+        padding: 4px 6px;
+    }
+}
+
+#achieve {
+    display: flex;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    list-style: none;
+    gap: 20px;
+    margin: 0;
+    padding: 0;
+    padding-top: 20px;
+}
+
+#circle-cursor {
+    box-shadow: 0 0 0 1px #fff;
+    background: #fff;
+    mix-blend-mode: difference;
+    pointer-events: none;
+    position: fixed;
+    z-index: 9999;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    transition: transform 0.08s cubic-bezier(.17,.67,.83,.67);
+    display: block;
+}
