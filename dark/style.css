@@ -17,8 +17,8 @@ body{
     font-family: main;
     line-height: 1.5;
     background-color: #3e5b59;
-    background-image: url('../images/background.jpg');
-    background-size: cover;
+    background-image: url('images/cat-cursed.gif');
+    background-size: 100% 100%;
     background-attachment: fixed;
     background-position: center;
     
@@ -26,7 +26,7 @@ body{
 
 .title, .subtitle{
     font-family: title;
-    color: rgb(221, 226, 165);
+    color: #b8b8b8;
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.359);
 
 }
@@ -39,7 +39,8 @@ body{
     text-align: center;
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.359);
     margin-top: 100px;
-    color: rgb(223, 223, 120);
+    color: #b09d74;
+    
 }
 
 #name{
@@ -55,7 +56,7 @@ body{
     width: 70%;
     height: auto;
     text-align: center;
-    background-color: rgba(46, 76, 68, 0.445);
+    background-color: #513d1457;
     backdrop-filter: blur(4px);
     box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.313);
     padding: 20px;
@@ -69,7 +70,7 @@ body{
 #aboutmedesc{
     font-size: 20px;
     padding-top: 15px;
-    color: rgb(195, 195, 159);
+    color: #bebebe
 }
 
 #achieve{
@@ -87,12 +88,12 @@ body{
 }
 
 .achieveitem{
-    background-color: rgba(33, 54, 48, 0.589);
+    background-color: #513d1457;
     width: 70px;
     border-radius: 3px;
     padding: 5px;
     margin: 10px;
-    color: rgb(195, 195, 159);
+    color: rgb(206, 206, 206);
     font-size: 20px;
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.499);
 
@@ -106,9 +107,9 @@ body{
     width: 70%;
     height: auto;
     text-align: center;
-    background-color: rgba(46, 76, 68, 0.445);
+    background-color: #513d1457;
     backdrop-filter: blur(4px);
-    box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.313);
+    box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.365);
     padding: 20px;
     margin-top: 40px;
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.306);
@@ -138,7 +139,7 @@ body{
 /* Navigation Bar */
 #mainnav {
     width: 100%;
-    background: rgba(46, 76, 68, 0.85);
+    background: #2d2d2dbe;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -153,7 +154,7 @@ body{
     list-style: none;
 }
 #mainnav ul li a {
-    color: rgb(221, 226, 165);
+    color: #b8b8b8;
     text-decoration: none;
     font-family: title;
     font-size: 20px;
@@ -163,7 +164,7 @@ body{
     text-transform: uppercase;
 }
 #mainnav ul li a:hover {
-    background: rgba(33, 54, 48, 0.3);
+    background: #513d1457;
 }
 
 #links {
